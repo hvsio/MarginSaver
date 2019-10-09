@@ -12,7 +12,9 @@ def getData():
         try:
             posted_data = request.get_json()
             print(posted_data)
+
             create_object_margin = Margin(**posted_data)
+
             conn_ref = Postgres()
             conn_ref.insert_data(create_object_margin)
             return jsonify({"status": "added"}), 201
