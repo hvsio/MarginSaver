@@ -7,108 +7,74 @@ import sqlalchemy
 
 table_name = "margintest2"
 
+
 class Postgres:
     def __init__(self):
-        con = psycopg2.connect(database="postgres", user="postgres", password="postgres", host="127.0.0.1", port="5432")
+        self.con = psycopg2.connect(database="postgres",
+                                    user="postgres",
+                                    password="postgres",
+                                    host="127.0.0.1",
+                                    port="5432")
 
         print("Database opened successfully init")
 
     def createTable(self):
         try:
-            con = psycopg2.connect(database="postgres", user="postgres", password="postgres", host="127.0.0.1", port="5432")
-
             print("Database opened successfully create")
-            cur = con.cursor()
-            cur.execute('''CREATE TABLE margintest2
-                  (ID time PRIMARY KEY  NOT NULL,
-                 INFO VARCHAR NOT NULL)''')
+            cur = self.con.cursor()
+            cur.execute('''CREATE TABLE margintest
+                  (NameBank text NOT NULL,
+                 Country text NOT NULL,
+                 TimeStamp time not null,
+                 Fcurrency text not null,
+                 Tcurrency text not null,
+                 Mbuy money not null,
+                 Msell money not null, 
+                 Pbuy money not null,
+                 Psell money not null,
+                 BuyExchange money not null,
+                 SellExchange money not null,
+                 MidRate money not null,
+                 CONSTRAINT margin_pk PRIMARY KEY (NameBank, Country, TimeStamp)
+
+                 )''')
             print("Table created successfully")
 
-            con.commit()
-            con.close()
+            self.con.commit()
+            self.con.close()
         except (Exception, psycopg2.Error) as error:
             print(error)
 
     def insert_data(self, data):
         try:
-            con = psycopg2.connect(database="postgres", user="postgres", password="postgres", host="127.0.0.1", port="5432")
-
             print("Database opened successfully insert")
 
-            cur = con.cursor()
-            insert_query = ('''INSERT INTO margintest2(ID, INFO)  VALUES (%s,%s)''')
+            cur = self.con.cursor()
+            insert_query = ('''INSERT INTO margintest(namebank, country, timestamp, fcurrency, 
+                                                        tcurrency, mbuy, msell, pbuy, psell,
+                                                        buyExchange, sellExchange, midrate) 
+                                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)''')
 
-            value_to_insert = (data.__getTime__(), data.__getBank__())
+            value_to_insert = (data.name, data.country, data.time, data.fromCurrency,
+                               data.toCurrency, data.buyValue, data.sellValue, 1, 2, 3, 4, 5)
+
             print(value_to_insert)
-
 
             cur.execute(insert_query, value_to_insert)
 
             print("Bank inserted successfully")
-            con.commit()
-            con.close()
+            self.con.commit()
+            self.con.close()
         except (Exception, psycopg2.Error) as error:
             print(error)
-
-
-
-    def insert_bank(self, margin):
-        try:
-            con = psycopg2.connect(database="postgres", user="postgres", password="postgres", host="127.0.0.1", port="5432")
-
-            print("Database opened successfully insert")
-
-            cur = con.cursor()
-
-
-            value_to_insert = margin.to_JSON()
-            print(value_to_insert)
-            insert_query_json =('''
-                select * from json_to_record() as x(id numeric , bank text ,time numeric )''')
-
-            cur.execute(insert_query_json)
-            print("Bank inserted successfully")
-            con.commit()
-            con.close()
-        except (Exception, psycopg2.Error) as error:
-            print(error)
-
-
-    def insert_json_object(self, data):
-
-        try:
-            con = psycopg2.connect(database="postgres", user="postgres", password="postgres", host="127.0.0.1", port="5432")
-
-            print("Database opened successfully insert json")
-
-            cur = con.cursor()
-            cur.execute("Truncate {} Cascade;".format(table_name))
-            print("Truncated {}".format(table_name))
-            bank = data.to_JSON()
-            print(data)
-            print(bank)
-            for record in bank:
-                record = dump(record)
-                cur.execute(("INSERT INTO {} VALUES ('{}')".format(table_name, str(record).replace("'", "<>"))))
-                cur.execute("commit;")
-
-            print("Inserted data into {}".format(table_name))
-            con.close()
-            print("DB connection closed.")
-
-        except Exception as e:
-            print('Error {}'.format(str(e)))
 
     def truncate(self):
         try:
-            con = psycopg2.connect(database="postgres", user="postgres", password="postgres", host="127.0.0.1",
-                                   port="5432")
-
             print("Database opened successfully truncate")
-            cur = con.cursor()
-            cur.execute('''TRUNCATE TABLE margintest2 RESTART IDENTITY;''')
+            cur = self.con.cursor()
+            cur.execute('''TRUNCATE TABLE margintest RESTART IDENTITY;''')
             print("db truncated")
-            con.commit()
-            con.close()
+            self.con.commit()
+            self.con.close()
         except (Exception, psycopg2.Error) as error:
             print(error)

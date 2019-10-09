@@ -2,12 +2,17 @@ import json
 from bson import ObjectId
 
 
-
 class Margin:
-    def __init__(self, bank, time, *args, **kwargs):
+    def __init__(self, name, country, time, fromCurrency, toCurrency, buyValue, sellValue, unit, *args, **kwargs):
         self.id = ObjectId()
-        self.bank = bank
+        self.name = name
+        self.country = country
         self.time = time
+        self.fromCurrency = fromCurrency
+        self.toCurrency = toCurrency
+        self.buyValue = buyValue
+        self.sellValue = sellValue
+        self.unit = unit
 
     def __getTime__(self):
         return self.time

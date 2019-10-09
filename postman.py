@@ -9,13 +9,15 @@ app = Flask(__name__)
 @app.route("/margin", methods=['POST'])
 def getData():
     if request.method == 'POST':
-
-        posted_data = request.get_json()
-        print(posted_data)
-        create_object_margin = Margin(**posted_data)
-        conn_ref = Postgres()
-        conn_ref.insert_data(create_object_margin)
-        return jsonify({"status": "added"}), 201
+        try:
+            posted_data = request.get_json()
+            print(posted_data)
+            create_object_margin = Margin(**posted_data)
+            conn_ref = Postgres()
+            conn_ref.insert_data(create_object_margin)
+            return jsonify({"status": "added"}), 201
+        except:
+            jsonify({"status": "Postgres error"}), 408
 
 
 if __name__ == "__main__":
