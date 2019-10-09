@@ -23,7 +23,7 @@ def postData():
 def getData():
     try:
         conn_ref = Postgres()
-        return conn_ref.get_data()
+        return conn_ref.get_all_data()
 
     except:
         jsonify({"status": "Postgres error"}), 408

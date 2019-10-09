@@ -40,10 +40,11 @@ class Postgres:
                  )''')
             print("Table created successfully")
 
-            self.con.commit()
-            self.con.close()
         except (Exception, psycopg2.Error) as error:
             print(error)
+        finally:
+            self.con.commit()
+            self.con.close()
 
     def insert_data(self, data):
         try:
@@ -63,10 +64,11 @@ class Postgres:
             cur.execute(insert_query, value_to_insert)
 
             print("Bank inserted successfully")
-            self.con.commit()
-            self.con.close()
         except (Exception, psycopg2.Error) as error:
             print(error)
+        finally:
+            self.con.commit()
+            self.con.close()
 
     def truncate(self):
         try:
@@ -74,13 +76,13 @@ class Postgres:
             cur = self.con.cursor()
             cur.execute('''TRUNCATE TABLE margintest RESTART IDENTITY;''')
             print("db truncated")
+        except (Exception, psycopg2.Error) as error:
+            print(error)
+        finally:
             self.con.commit()
             self.con.close()
 
-        except (Exception, psycopg2.Error) as error:
-            print(error)
-
-    def get_data(self):
+    def get_all_data(self):
         try:
             print("Database opened successfully get")
             cur = self.con.cursor()
