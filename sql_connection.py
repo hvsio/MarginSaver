@@ -5,7 +5,7 @@ import dump
 import json
 import sqlalchemy
 
-table_name = "margintest2"
+table_name = "margintest"
 
 
 class Postgres:
@@ -76,5 +76,22 @@ class Postgres:
             print("db truncated")
             self.con.commit()
             self.con.close()
+
         except (Exception, psycopg2.Error) as error:
             print(error)
+
+    def get_data(self):
+        try:
+            print("Database opened successfully get")
+            cur = self.con.cursor()
+            cur.execute('''SELECT * FROM margintest;''')
+            data = cur.fetchall()
+            for row in data:
+                print(row)
+            return json.dumps(data, indent=4, sort_keys=True, default=str)
+
+        except (Exception, psycopg2.Error) as error:
+            print(error)
+        finally:
+            self.con.commit()
+            self.con.close()
