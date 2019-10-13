@@ -5,6 +5,9 @@ import dump
 import json
 import sqlalchemy
 
+import midrate
+
+
 table_name = "margintest"
 
 
@@ -28,13 +31,13 @@ class Postgres:
                  TimeStamp time not null,
                  Fcurrency text not null,
                  Tcurrency text not null,
-                 Mbuy money not null,
-                 Msell money not null, 
-                 Pbuy money not null,
-                 Psell money not null,
-                 BuyExchange money not null,
-                 SellExchange money not null,
-                 MidRate money not null,
+                 Mbuy numeric not null,
+                 Msell numeric not null, 
+                 Pbuy numeric not null,
+                 Psell numeric not null,
+                 BuyExchange numeric not null,
+                 SellExchange numeric not null,
+                 MidRate numeric not null,
                  CONSTRAINT margin_pk PRIMARY KEY (NameBank, Country, TimeStamp)
 
                  )''')
@@ -56,8 +59,10 @@ class Postgres:
                                                         buyExchange, sellExchange, midrate) 
                                     VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)''')
 
+
             value_to_insert = (data.name, data.country, data.time, data.fromCurrency,
-                               data.toCurrency, data.buyValue, data.sellValue, 1, 2, 3, 4, 5)
+                               data.toCurrency, data.buyValue, data.sellValue, 1, 2, 3, 4,
+                               midrate.getMidrateForBase(data))
 
             print(value_to_insert)
 
