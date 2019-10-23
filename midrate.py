@@ -2,6 +2,11 @@ import urllib
 
 from flask import request, json
 
+def getMidrate(fromCur, toCur):
+    url = "https://api.exchangeratesapi.io/latest?base="
+    json_data = getResponse(url + fromCur)
+    return json_data['rates'][toCur]
+
 
 def getMidrateFromToCur(data):
     url = "https://api.exchangeratesapi.io/latest?base="

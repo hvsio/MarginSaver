@@ -13,7 +13,7 @@ def postData():
             print(posted_data)
             create_object_margin = Margin(**posted_data)
             conn_ref = Postgres()
-            conn_ref.insert_data(create_object_margin)
+            conn_ref.insert_with_panda(create_object_margin)
             return jsonify({"status": "added"}), 201
         except:
             jsonify({"status": "Postgres error"}), 408
