@@ -4,7 +4,7 @@ import bson.tz_util
 import dump
 import json
 import sqlalchemy
-
+import filter
 import midrate
 
 
@@ -59,10 +59,30 @@ class Postgres:
                                                         buyExchange, sellExchange, midrate) 
                                     VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)''')
 
+            if data.unit == 'M100':
+                value_to_insert = (data.name, data.country, data.time,
+                                   data.fromCurrency, data.toCurrency,
+                                   data.buyMargin, data.sellMargin,
+                                   filter.marToP(data), filter.marToP(data),
+                                   filter.marToEx(data), filter.marToEx(data),
+                                   midrate.getMidrateFromToCur(data))
 
-            value_to_insert = (data.name, data.country, data.time, data.fromCurrency,
-                               data.toCurrency, data.buyValue, data.sellValue, 1, 2, 3, 4,
-                               midrate.getMidrateForBase(data))
+            elif data.unit == 'Exchange':
+                value_to_insert = (data.name, data.country, data.time,
+                                   data.fromCurrency, data.toCurrency,
+                                   filter.exToM(data), filter.exToM(data),
+                                   filter.exToP(data), filter.exToP(data),
+                                   data.buyMargin, data.sellMargin,
+                                   midrate.getMidrateFromToCur(data))
+
+            elif data.unit == 'Percentage':
+                value_to_insert = (data.name, data.country, data.time,
+                                   data.fromCurrency, data.toCurrency,
+                                   filter.pToM(data), filter.pToM(data),
+                                   data.buyMargin, data.sellMargin,
+                                   filter.pToEx(data), filter.pToEx(data),
+                                   midrate.getMidrateFromToCur(data))
+
 
             print(value_to_insert)
 

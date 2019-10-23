@@ -3,7 +3,7 @@ import urllib
 from flask import request, json
 
 
-def getMidrateForBase(data):
+def getMidrateFromToCur(data):
     url = "https://api.exchangeratesapi.io/latest?base="
     json_data = getResponse(url + data.fromCurrency)
     for item in json_data['rates']:
