@@ -3,10 +3,13 @@ from psycopg2._json import Json
 import bson.tz_util
 import dump
 import json
-import sqlalchemy
+
+import df_util
 import filter
 import midrate
+import pandas as pd
 
+from sqlalchemy import create_engine
 
 table_name = "margintest"
 
@@ -49,6 +52,35 @@ class Postgres:
             self.con.commit()
             self.con.close()
 
+    def insert_with_panda(self, data):
+        try:
+            print("Database opened successfully panda")
+
+
+            df = {
+                "name": data.name,
+                "country": data.country,
+                "time": data.time,
+                "toCurrency": data.toCurrency,
+                "fromCurrency":  data.fromCurrency,
+                "buyMargin": data.buyMargin,
+                "sellMargin": data.sellMargin,
+                "percentBuy": filter.marToP(data),
+                "percentSell": filter.marToP(data),
+                "exchangeRateSell": filter.marToEx(data),
+                "exchangeRateBuy": filter.marToEx(data),
+                "unit": data.unit
+            }
+
+
+            df1 = pd.DataFrame(df)
+            engine = create_engine('postgresql://postgres:postgres@127.0.0.1: 5432/postgres')
+            df1.to_sql("margintest3", engine, if_exists='append', index=False)
+
+            print("Bank inserted successfully")
+        except (Exception, psycopg2.Error) as error:
+            print(error)
+
     def insert_data(self, data):
         try:
             print("Database opened successfully insert")
@@ -82,7 +114,6 @@ class Postgres:
                                    data.buyMargin, data.sellMargin,
                                    filter.pToEx(data), filter.pToEx(data),
                                    midrate.getMidrateFromToCur(data))
-
 
             print(value_to_insert)
 
