@@ -2,10 +2,11 @@ import urllib
 
 from flask import request, json
 
+
 def getMidrate(fromCur, toCur):
     url = "https://api.exchangeratesapi.io/latest?base="
-    json_data = getResponse(url + fromCur)
-    return json_data['rates'][toCur]
+    json_data = getResponse(url + toCur)
+    return json_data['rates'][fromCur]
 
 
 def getMidrateFromToCur(data):
@@ -13,7 +14,7 @@ def getMidrateFromToCur(data):
     json_data = getResponse(url + data.fromCurrency)
     for item in json_data['rates']:
         if item == data.toCurrency:
-           return json_data['rates'][item]
+            return json_data['rates'][item]
 
 
 def getResponse(url):

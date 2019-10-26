@@ -1,10 +1,6 @@
 import psycopg2
-from psycopg2._json import Json
-import bson.tz_util
-import dump
 import json
 
-import df_util
 import filter
 import midrate
 import pandas as pd
@@ -55,27 +51,59 @@ class Postgres:
     def insert_with_panda(self, data):
         try:
             print("Database opened successfully panda")
-
-
-            df = {
-                "name": data.name,
-                "country": data.country,
-                "time": data.time,
-                "toCurrency": data.toCurrency,
-                "fromCurrency":  data.fromCurrency,
-                "buyMargin": data.buyMargin,
-                "sellMargin": data.sellMargin,
-                "percentBuy": filter.marToP(data),
-                "percentSell": filter.marToP(data),
-                "exchangeRateSell": filter.marToEx(data),
-                "exchangeRateBuy": filter.marToEx(data),
-                "unit": data.unit
-            }
-
+            if data.unit == "M100":
+                df = {
+                    "name": data.name,
+                    "country": data.country,
+                    "time": data.time,
+                    "toCurrency": data.toCurrency,
+                    "fromCurrency": data.fromCurrency,
+                    "buyMargin": data.buyMargin,
+                    "sellMargin": data.sellMargin,
+                    "exchangeRateSell": filter.marToEx(data),
+                    "exchangeRateBuy": filter.marToEx(data),
+                    "percentBuy": filter.marToP(data),
+                    "percentSell": filter.marToP(data),
+                    "unit": data.unit,
+                    "midrate": filter.mid(data),
+                }
+            elif data.unit == "Percent":
+                df = {
+                    "name": data.name,
+                    "country": data.country,
+                    "time": data.time,
+                    "toCurrency": data.toCurrency,
+                    "fromCurrency": data.fromCurrency,
+                    "buyMargin": filter.pToM(data),
+                    "sellMargin": filter.pToM(data),
+                    "exchangeRateSell": filter.pToEx(data),
+                    "exchangeRateBuy": filter.pToEx(data),
+                    "percentBuy": data.buyMargin,
+                    "percentSell": data.sellMargin,
+                    "unit": data.unit,
+                    "midrate": filter.mid(data),
+                }
+            elif data.unit == "Exchange":
+                df = {
+                    "name": data.name,
+                    "country": data.country,
+                    "time": data.time,
+                    "toCurrency": data.toCurrency,
+                    "fromCurrency": data.fromCurrency,
+                    "buyMargin": filter.exToM(data),
+                    "sellMargin": filter.exToM(data),
+                    "exchangeRateSell": data.sellMargin,
+                    "exchangeRateBuy": data.buyMargin,
+                    "percentBuy": filter.exToP(data),
+                    "percentSell": filter.exToP(data),
+                    "unit": data.unit,
+                    "midrate": filter.mid(data),
+                }
 
             df1 = pd.DataFrame(df)
+
             engine = create_engine('postgresql://postgres:postgres@127.0.0.1: 5432/postgres')
-            df1.to_sql("margintest3", engine, if_exists='append', index=False)
+            df1.to_sql("margintest_df_calc", engine, if_exists='append', index=False)
 
             print("Bank inserted successfully")
         except (Exception, psycopg2.Error) as error:
@@ -99,7 +127,7 @@ class Postgres:
                                    filter.marToEx(data), filter.marToEx(data),
                                    midrate.getMidrateFromToCur(data))
 
-            elif data.unit == 'Exchange':
+            elif data.unit == 'exchange':
                 value_to_insert = (data.name, data.country, data.time,
                                    data.fromCurrency, data.toCurrency,
                                    filter.exToM(data), filter.exToM(data),
@@ -107,7 +135,7 @@ class Postgres:
                                    data.buyMargin, data.sellMargin,
                                    midrate.getMidrateFromToCur(data))
 
-            elif data.unit == 'Percentage':
+            elif data.unit == 'percentage':
                 value_to_insert = (data.name, data.country, data.time,
                                    data.fromCurrency, data.toCurrency,
                                    filter.pToM(data), filter.pToM(data),
