@@ -9,6 +9,7 @@ def getMidrate(fromCur, toCur):
     return json_data['rates'][fromCur]
 
 
+
 def getMidrateFromToCur(data):
     url = "https://api.exchangeratesapi.io/latest?base="
     json_data = getResponse(url + data.fromCurrency)
