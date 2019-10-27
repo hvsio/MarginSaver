@@ -2,3 +2,4 @@ sqlalchemy
 pandas
 flask
 dump
+pytest

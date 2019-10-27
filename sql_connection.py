@@ -1,7 +1,7 @@
 import psycopg2
 import json
 
-import filter
+import margin_calculator
 import midrate
 import pandas as pd
 
@@ -49,6 +49,8 @@ class Postgres:
             self.con.close()
 
     def insert_with_panda(self, data):
+
+        #FIXME: find better(readable) way to distribute depending on unit
         try:
             print("Database opened successfully panda")
             if data.unit == "M100":
@@ -60,12 +62,12 @@ class Postgres:
                     "fromCurrency": data.fromCurrency,
                     "buyMargin": data.buyMargin,
                     "sellMargin": data.sellMargin,
-                    "exchangeRateSell": filter.marToEx(data),
-                    "exchangeRateBuy": filter.marToEx(data),
-                    "percentBuy": filter.marToP(data),
-                    "percentSell": filter.marToP(data),
+                    "exchangeRateSell": margin_calculator.margin_to_exchange_rate(data),
+                    "exchangeRateBuy": margin_calculator.margin_to_exchange_rate(data),
+                    "percentBuy": margin_calculator.margin_to_percentage(data),
+                    "percentSell": margin_calculator.margin_to_percentage(data),
                     "unit": data.unit,
-                    "midrate": filter.mid(data),
+                    "midrate": margin_calculator.get_midrate_from_panda(data),
                 }
             elif data.unit == "Percent":
                 df = {
@@ -74,14 +76,14 @@ class Postgres:
                     "time": data.time,
                     "toCurrency": data.toCurrency,
                     "fromCurrency": data.fromCurrency,
-                    "buyMargin": filter.pToM(data),
-                    "sellMargin": filter.pToM(data),
-                    "exchangeRateSell": filter.pToEx(data),
-                    "exchangeRateBuy": filter.pToEx(data),
+                    "buyMargin": margin_calculator.percentage_to_margin(data),
+                    "sellMargin": margin_calculator.percentage_to_margin(data),
+                    "exchangeRateSell": margin_calculator.percentage_to_exchange_rate(data),
+                    "exchangeRateBuy": margin_calculator.percentage_to_exchange_rate(data),
                     "percentBuy": data.buyMargin,
                     "percentSell": data.sellMargin,
                     "unit": data.unit,
-                    "midrate": filter.mid(data),
+                    "midrate": margin_calculator.get_midrate_from_panda(data),
                 }
             elif data.unit == "Exchange":
                 df = {
@@ -90,14 +92,14 @@ class Postgres:
                     "time": data.time,
                     "toCurrency": data.toCurrency,
                     "fromCurrency": data.fromCurrency,
-                    "buyMargin": filter.exToM(data),
-                    "sellMargin": filter.exToM(data),
+                    "buyMargin": margin_calculator.exchange_rate_to_margin(data),
+                    "sellMargin": margin_calculator.exchange_rate_to_margin(data),
                     "exchangeRateSell": data.sellMargin,
                     "exchangeRateBuy": data.buyMargin,
-                    "percentBuy": filter.exToP(data),
-                    "percentSell": filter.exToP(data),
+                    "percentBuy": margin_calculator.exchange_rate_to_percentage(data),
+                    "percentSell": margin_calculator.exchange_rate_to_percentage(data),
                     "unit": data.unit,
-                    "midrate": filter.mid(data),
+                    "midrate": margin_calculator.get_midrate_from_panda(data),
                 }
 
             df1 = pd.DataFrame(df)
@@ -123,25 +125,25 @@ class Postgres:
                 value_to_insert = (data.name, data.country, data.time,
                                    data.fromCurrency, data.toCurrency,
                                    data.buyMargin, data.sellMargin,
-                                   filter.marToP(data), filter.marToP(data),
-                                   filter.marToEx(data), filter.marToEx(data),
-                                   midrate.getMidrateFromToCur(data))
+                                   margin_calculator.margin_to_percentage(data), margin_calculator.margin_to_percentage(data),
+                                   margin_calculator.margin_to_exchange_rate(data), margin_calculator.margin_to_exchange_rate(data),
+                                   midrate.get_midrate(data))
 
             elif data.unit == 'exchange':
                 value_to_insert = (data.name, data.country, data.time,
                                    data.fromCurrency, data.toCurrency,
-                                   filter.exToM(data), filter.exToM(data),
-                                   filter.exToP(data), filter.exToP(data),
+                                   margin_calculator.exchange_rate_to_margin(data), margin_calculator.exchange_rate_to_margin(data),
+                                   margin_calculator.exchange_rate_to_percentage(data), margin_calculator.exchange_rate_to_percentage(data),
                                    data.buyMargin, data.sellMargin,
-                                   midrate.getMidrateFromToCur(data))
+                                   midrate.get_midrate(data))
 
             elif data.unit == 'percentage':
                 value_to_insert = (data.name, data.country, data.time,
                                    data.fromCurrency, data.toCurrency,
-                                   filter.pToM(data), filter.pToM(data),
+                                   margin_calculator.percentage_to_margin(data), margin_calculator.percentage_to_margin(data),
                                    data.buyMargin, data.sellMargin,
-                                   filter.pToEx(data), filter.pToEx(data),
-                                   midrate.getMidrateFromToCur(data))
+                                   margin_calculator.percentage_to_exchange_rate(data), margin_calculator.percentage_to_exchange_rate(data),
+                                   midrate.get_midrate(data))
 
             print(value_to_insert)
 

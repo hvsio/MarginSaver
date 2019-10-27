@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, json
-from margins import Margin
+from scrapped_data import Scrapped
 from sql_connection import Postgres
 
 app = Flask(__name__)
@@ -10,7 +10,7 @@ def postData():
     try:
         posted_data = request.get_json()
         print(posted_data)
-        create_object_margin = Margin(**posted_data)
+        create_object_margin = Scrapped(**posted_data)
         conn_ref = Postgres()
         conn_ref.insert_with_panda(create_object_margin)
         return jsonify({"status": "added"}), 201

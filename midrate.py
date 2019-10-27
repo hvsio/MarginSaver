@@ -3,14 +3,14 @@ import urllib
 from flask import request, json
 
 
-def getMidrate(fromCur, toCur):
+def get_midrate_from_to(fromCur, toCur):
     url = "https://api.exchangeratesapi.io/latest?base="
     json_data = getResponse(url + toCur)
     return json_data['rates'][fromCur]
 
 
 
-def getMidrateFromToCur(data):
+def get_midrate(data):
     url = "https://api.exchangeratesapi.io/latest?base="
     json_data = getResponse(url + data.fromCurrency)
     for item in json_data['rates']:

@@ -2,7 +2,7 @@ import json
 from bson import ObjectId
 
 
-class Margin:
+class Scrapped:
     def __init__(self, name, country, time, fromCurrency, toCurrency, buyMargin, sellMargin, unit, *args, **kwargs):
         self.id = ObjectId()
         self.name = name
