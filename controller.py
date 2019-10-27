@@ -16,7 +16,7 @@ def postData():
         return jsonify({"status": "added"}), 201
     except Exception as e:
         print(str(e))
-        jsonify({"status": "Postgres error"}), 408
+        return jsonify({"status": "Postgres error"}), 408
 
 
 @app.route("/margin", methods=['GET'])
@@ -26,7 +26,7 @@ def getData():
         return conn_ref.get_all_data()
 
     except:
-        jsonify({"status": "Postgres error"}), 408
+        return jsonify({"status": "Postgres error"}), 408
 
 
 if __name__ == "__main__":
