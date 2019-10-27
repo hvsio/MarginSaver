@@ -104,7 +104,7 @@ class Postgres:
 
             df1 = pd.DataFrame(df)
 
-            engine = create_engine('postgresql://postgres:postgres@127.0.0.1: 5432/postgres')
+            engine = create_engine('postgresql://postgres:postgres@135.228.162.15: 5432/postgres')
             df1.to_sql("margintest_df_calc", engine, if_exists='append', index=False)
 
             print("Bank inserted successfully")

@@ -3,6 +3,7 @@ import midrate
 def margin_to_exchange_rate(data):
     j = data.to_JSON()
     list_p = []
+
     for idx, val in enumerate(j['toCurrency']):
         try:
             mid = midrate.get_midrate_from_to(j['fromCurrency'][idx], j['toCurrency'][idx])

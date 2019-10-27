@@ -3,3 +3,5 @@ pandas
 flask
 dump
 pytest
+bson
+psycopg2
