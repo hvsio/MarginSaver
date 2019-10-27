@@ -4,8 +4,6 @@ steps:
   - name: gcr.io/cloud-builders/git
     args: ['clone', 'https://PatrickVibild:holadontsteal1@github.com/PatrickVibild/marginsaver']
 
-
-
   # This step runs the unit tests on the src
   - name: 'docker.io/library/python:3.7'
     id: Test
@@ -24,10 +22,10 @@ steps:
     id: Container push
     args: ['push', 'gcr.io/abiding-robot-255320/marginsaver:$SHORT_SHA']
 
-#Uses the container and replaces the existing one in Kubernetes
-        - name: 'gcr.io/cloud-builders/kubectl'
-          id: Kubernetes deployment
-          args: ['set', 'image', 'deployment/margin-saver', 'marginsaver-sha256=gcr.io/abiding-robot-255320/marginsaver:$SHORT_SHA']
-          env:
-            - 'CLOUDSDK_COMPUTE_ZONE=europe-north1-c'
-            - 'CLOUDSDK_CONTAINER_CLUSTER=smargin-saver-cluster'
+  #Uses the container and replaces the existing one in Kubernetes
+  - name: 'gcr.io/cloud-builders/kubectl'
+    id: Kubernetes deployment
+    args: ['set', 'image', 'deployment/margin-saver', 'marginsaver-sha256=gcr.io/abiding-robot-255320/marginsaver:$SHORT_SHA']
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=europe-north1-c'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=smargin-saver-cluster'
