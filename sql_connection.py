@@ -1,11 +1,13 @@
+import sys
 import psycopg2
 import json
-
+import sqlalchemy
 import margin_calculator
 import midrate
 import pandas as pd
+from sqlalchemy import *
 
-from sqlalchemy import create_engine
+from environment.environment import Config
 
 table_name = "margintest"
 
@@ -14,7 +16,7 @@ class Postgres:
 
     def insert_with_panda(self, data):
 
-        #FIXME: find better(readable) way to distribute depending on unit
+        # FIXME: find better(readable) way to distribute depending on unit
         try:
             print("Database opened successfully panda")
             if data.unit == "M100":
@@ -67,20 +69,24 @@ class Postgres:
                 }
 
             df1 = pd.DataFrame(df)
+            print(df1)
 
-            engine = create_engine('postgresql://postgres:holadontsteal@135.228.162.15:5432/postgres')
+            Config.initialize()
+            environment = Config.cloud('DATABASE') if (len(sys.argv) > 1 and sys.argv[1] == 'cloud')\
+                                                    else Config.dev('DATABASE')
+            engine = create_engine(environment)
+
             df1.to_sql("margintest_df_calc", engine, if_exists='append', index=False)
 
             print("Bank inserted successfully")
         except (Exception, psycopg2.Error) as error:
             print(error)
 
-
     def get_all_data(self):
         try:
             print("Database opened successfully get")
             cur = self.con.cursor()
-            cur.execute('''SELECT * FROM margintest;''')
+            cur.execute('''SELECT * FROM margintest_df_calc;''')
             data = cur.fetchall()
             for row in data:
                 print(row)

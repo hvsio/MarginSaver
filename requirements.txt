@@ -5,3 +5,4 @@ dump
 pytest
 bson
 psycopg2
+configparser
