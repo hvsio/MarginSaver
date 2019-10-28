@@ -1,31 +1,31 @@
 steps:
 
-  # This steps clone the repository into GCP
-  - name: gcr.io/cloud-builders/git
-    args: ['clone', 'https://PatrickVibild:holadontsteal1@github.com/PatrickVibild/marginsaver']
+# This steps clone the repository into GCP
+- name: gcr.io/cloud-builders/git
+  args: ['clone', 'https://PatrickVibild:holadontsteal1@github.com/PatrickVibild/marginsaver']
 
-  # This step runs the unit tests on the src
-  - name: 'docker.io/library/python:3.7'
-    id: Test
-    entrypoint: /bin/sh
-    args:
-      - -c
-      - 'pip install -r requirements.txt && python -m pytest test/**'
+# This step runs the unit tests on the src
+- name: 'docker.io/library/python:3.7'
+  id: Test
+  entrypoint: /bin/sh
+  args:
+    - -c
+    - 'pip install -r requirements.txt && python -m pytest test/**'
 
-  #This step creates a container and leave it on CloudBuilds repository.
-  - name: 'gcr.io/cloud-builders/docker'
-    id: Build
-    args: ['build', '-t', 'gcr.io/abiding-robot-255320/marginsaver:$SHORT_SHA', '.']
+#This step creates a container and leave it on CloudBuilds repository.
+- name: 'gcr.io/cloud-builders/docker'
+  id: Build
+  args: ['build', '-t', 'gcr.io/abiding-robot-255320/marginsaver:$SHORT_SHA', '.']
 
-  #Adds the container to Google container registry as an artefact
-  - name: 'gcr.io/cloud-builders/docker'
-    id: Container push
-    args: ['push', 'gcr.io/abiding-robot-255320/marginsaver:$SHORT_SHA']
+#Adds the container to Google container registry as an artefact
+- name: 'gcr.io/cloud-builders/docker'
+  id: Container push
+  args: ['push', 'gcr.io/abiding-robot-255320/marginsaver:$SHORT_SHA']
 
-  #Uses the container and replaces the existing one in Kubernetes
-  - name: 'gcr.io/cloud-builders/kubectl'
-    id: Kubernetes deployment
-    args: ['set', 'image', 'deployment/margin-saver', 'marginsaver-sha256=gcr.io/abiding-robot-255320/marginsaver:$SHORT_SHA']
-    env:
-      - 'CLOUDSDK_COMPUTE_ZONE=europe-north1-c'
-      - 'CLOUDSDK_CONTAINER_CLUSTER=smargin-saver-cluster'
+#Uses the container and replaces the existing one in Kubernetes
+- name: 'gcr.io/cloud-builders/kubectl'
+  id: Kubernetes deployment
+  args: ['set', 'image', 'deployment/margin-saver', 'marginsaver-sha256=gcr.io/abiding-robot-255320/marginsaver:$SHORT_SHA']
+  env:
+    - 'CLOUDSDK_COMPUTE_ZONE=europe-north1-c'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=smargin-saver-cluster'
