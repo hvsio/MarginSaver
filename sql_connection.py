@@ -6,14 +6,17 @@ import margin_calculator
 import midrate
 import pandas as pd
 from sqlalchemy import *
-
+import threading
 from environment.environment import Config
 
 table_name = "margintest"
 
 
+
 class Postgres:
     def __init__(self):
+
+        self.lock = threading.Lock()
         Config.initialize()
         self.environment = Config.cloud('DATABASE') if (len(sys.argv) > 1 and sys.argv[1] == 'cloud') \
             else Config.dev('DATABASE')
@@ -23,9 +26,9 @@ class Postgres:
         print("Database opened successfully init")
 
     def insert_with_panda(self, data):
+        with self.lock:
+            # FIXME: find better(readable) way to distribute depending on unit
 
-        # FIXME: find better(readable) way to distribute depending on unit
-        try:
             print("Database opened successfully panda")
             if data.unit == "M100":
                 df = {
@@ -92,8 +95,8 @@ class Postgres:
             df1.to_sql("margintest", engine, if_exists='append', index=False)
 
             print("Bank inserted successfully")
-        except (Exception, psycopg2.Error) as error:
-            print(error)
+
+
 
     def get_all_data(self):
         try:
