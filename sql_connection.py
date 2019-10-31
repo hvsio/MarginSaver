@@ -13,6 +13,14 @@ table_name = "margintest"
 
 
 class Postgres:
+    def __init__(self):
+        Config.initialize()
+        self.environment = Config.cloud('DATABASE') if (len(sys.argv) > 1 and sys.argv[1] == 'cloud') \
+            else Config.dev('DATABASE')
+
+        self.con = psycopg2.connect(self.environment)
+
+        print("Database opened successfully init")
 
     def insert_with_panda(self, data):
 
@@ -24,59 +32,64 @@ class Postgres:
                     "name": data.name,
                     "country": data.country,
                     "time": data.time,
-                    "toCurrency": data.toCurrency,
-                    "fromCurrency": data.fromCurrency,
-                    "buyMargin": data.buyMargin,
-                    "sellMargin": data.sellMargin,
-                    "exchangeRateSell": margin_calculator.margin_to_exchange_rate(data),
-                    "exchangeRateBuy": margin_calculator.margin_to_exchange_rate(data),
-                    "percentBuy": margin_calculator.margin_to_percentage(data),
-                    "percentSell": margin_calculator.margin_to_percentage(data),
+                    "tocurrency": data.toCurrency,
+                    "fromcurrency": data.fromCurrency,
+                    "buymargin": data.buyMargin,
+                    "sellmargin": data.sellMargin,
+                    "exchangeratesell": margin_calculator.margin_to_exchange_rate(data),
+                    "exchangeratebuy": margin_calculator.margin_to_exchange_rate(data),
+                    "percentbuy": margin_calculator.margin_to_percentage(data),
+                    "percentsell": margin_calculator.margin_to_percentage(data),
                     "unit": data.unit,
                     "midrate": margin_calculator.get_midrate_from_panda(data),
                 }
-            elif data.unit == "Percent":
+            elif data.unit == "percentage":
                 df = {
                     "name": data.name,
                     "country": data.country,
                     "time": data.time,
-                    "toCurrency": data.toCurrency,
-                    "fromCurrency": data.fromCurrency,
-                    "buyMargin": margin_calculator.percentage_to_margin(data),
-                    "sellMargin": margin_calculator.percentage_to_margin(data),
-                    "exchangeRateSell": margin_calculator.percentage_to_exchange_rate(data),
-                    "exchangeRateBuy": margin_calculator.percentage_to_exchange_rate(data),
-                    "percentBuy": data.buyMargin,
-                    "percentSell": data.sellMargin,
+                    "tocurrency": data.toCurrency,
+                    "fromcurrency": data.fromCurrency,
+                    "buymargin": margin_calculator.percentage_to_margin(data),
+                    "sellmargin": margin_calculator.percentage_to_margin(data),
+                    "exchangeratesell": margin_calculator.percentage_to_exchange_rate(data),
+                    "exchangeratebuy": margin_calculator.percentage_to_exchange_rate(data),
+                    "percentbuy": data.buyMargin,
+                    "percentsell": data.sellMargin,
                     "unit": data.unit,
                     "midrate": margin_calculator.get_midrate_from_panda(data),
                 }
-            elif data.unit == "Exchange":
+            elif data.unit == "exchange":
                 df = {
                     "name": data.name,
                     "country": data.country,
                     "time": data.time,
-                    "toCurrency": data.toCurrency,
-                    "fromCurrency": data.fromCurrency,
-                    "buyMargin": margin_calculator.exchange_rate_to_margin(data),
-                    "sellMargin": margin_calculator.exchange_rate_to_margin(data),
-                    "exchangeRateSell": data.sellMargin,
-                    "exchangeRateBuy": data.buyMargin,
-                    "percentBuy": margin_calculator.exchange_rate_to_percentage(data),
-                    "percentSell": margin_calculator.exchange_rate_to_percentage(data),
+                    "tocurrency": data.toCurrency,
+                    "fromcurrency": data.fromCurrency,
+                    "buymargin": margin_calculator.exchange_rate_to_margin(data),
+                    "sellmargin": margin_calculator.exchange_rate_to_margin(data),
+                    "exchangeratesell": data.sellMargin,
+                    "exchangeratebuy": data.buyMargin,
+                    "percentbuy": margin_calculator.exchange_rate_to_percentage(data),
+                    "percentsell": margin_calculator.exchange_rate_to_percentage(data),
                     "unit": data.unit,
                     "midrate": margin_calculator.get_midrate_from_panda(data),
                 }
 
             df1 = pd.DataFrame(df)
+
+            df1['buymargin'] = pd.to_numeric(df['buymargin'])
+            df1['sellmargin'] = pd.to_numeric(df['sellmargin'])
+            df1['exchangeratesell'] = pd.to_numeric(df['exchangeratesell'])
+            df1['exchangeratebuy'] = pd.to_numeric(df['exchangeratebuy'])
+            df1['percentbuy'] = pd.to_numeric(df['percentbuy'])
+            df1['percentsell'] = pd.to_numeric(df['percentsell'])
+
             print(df1)
 
-            Config.initialize()
-            environment = Config.cloud('DATABASE') if (len(sys.argv) > 1 and sys.argv[1] == 'cloud')\
-                                                    else Config.dev('DATABASE')
-            engine = create_engine(environment)
+            engine = create_engine(self.environment)
 
-            df1.to_sql("margintest_df_calc", engine, if_exists='append', index=False)
+            df1.to_sql("margintest", engine, if_exists='append', index=False)
 
             print("Bank inserted successfully")
         except (Exception, psycopg2.Error) as error:
@@ -86,7 +99,24 @@ class Postgres:
         try:
             print("Database opened successfully get")
             cur = self.con.cursor()
-            cur.execute('''SELECT * FROM margintest_df_calc;''')
+            cur.execute('''SELECT * FROM margintest;''')
+            data = cur.fetchall()
+            for row in data:
+                print(row)
+            return json.dumps(data, indent=4, sort_keys=True, default=str)
+
+        except (Exception, psycopg2.Error) as error:
+            print(error)
+        finally:
+            self.con.commit()
+            self.con.close()
+
+    def get_all_of_to_currency(self, tocurrency):
+        try:
+            print("Database opened successfully get")
+            cur = self.con.cursor()
+            query_to_execute = "SELECT * FROM margintest WHERE margintest.tocurrency IN (%s)"
+            cur.execute(query_to_execute, (tocurrency,))
             data = cur.fetchall()
             for row in data:
                 print(row)

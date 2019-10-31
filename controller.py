@@ -29,5 +29,15 @@ def getData():
         return jsonify({"status": "Postgres error"}), 408
 
 
+@app.route("/tocurrency", methods=['GET'])
+def get_all_to_currency():
+    try:
+        conn_ref = Postgres()
+
+        return conn_ref.get_all_of_to_currency('EUR')
+    except:
+        return jsonify({"status": "Postgres error"}), 408
+
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
