@@ -22,6 +22,7 @@ steps:
   id: Container push
   args: ['push', 'gcr.io/abiding-robot-255320/marginsaver:$SHORT_SHA']
 
+
 #Uses the container and replaces the existing one in Kubernetes
 - name: 'gcr.io/cloud-builders/kubectl'
   id: Kubernetes deployment
