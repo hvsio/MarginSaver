@@ -17,3 +17,8 @@ class Scrapped:
     def to_JSON(self):
         string = json.dumps(self, default=lambda o: getattr(o, '__dict__', str(o)))
         return json.loads(string)
+
+    def base_margin(self):
+        if self.unit == 'M100':
+            self.buyMargin = [float(element)/100 for element in self.buyMargin]
+            self.sellMargin = [float(element) / 100 for element in self.sellMargin]

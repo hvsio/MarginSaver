@@ -11,6 +11,7 @@ def postData():
         posted_data = request.get_json()
         print(posted_data)
         create_object_margin = Scrapped(**posted_data)
+        if create_object_margin.unit == 'M100': create_object_margin.base_margin()
         conn_ref = Postgres()
         conn_ref.insert_with_panda(create_object_margin)
         return jsonify({"status": "added"}), 201
