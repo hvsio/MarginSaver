@@ -23,10 +23,10 @@ steps:
   args: ['push', 'gcr.io/abiding-robot-255320/marginsaver:$SHORT_SHA']
 
 
-#Uses the container and replaces the existing one in Kubernetes
-- name: 'gcr.io/cloud-builders/kubectl'
-  id: Kubernetes deployment
-  args: ['set', 'image', 'deployment/margin-saver', 'marginsaver-sha256=gcr.io/abiding-robot-255320/marginsaver:$SHORT_SHA']
-  env:
-    - 'CLOUDSDK_COMPUTE_ZONE=europe-north1-c'
-    - 'CLOUDSDK_CONTAINER_CLUSTER=margin-saver-cluster'
+##Uses the container and replaces the existing one in Kubernetes
+#- name: 'gcr.io/cloud-builders/kubectl'
+#  id: Kubernetes deployment
+#  args: ['set', 'image', 'deployment/margin-saver', 'marginsaver-sha256=gcr.io/abiding-robot-255320/marginsaver:$SHORT_SHA']
+#  env:
+#    - 'CLOUDSDK_COMPUTE_ZONE=europe-north1-c'
+#    - 'CLOUDSDK_CONTAINER_CLUSTER=margin-saver-cluster'
