@@ -40,5 +40,17 @@ def get_all_to_currency():
         return jsonify({"status": "Postgres error"}), 408
 
 
+@app.route("/calculate", methods=['GET'])
+def get_calculated_results():
+    try:
+        conn_ref = Postgres()
+        country = request.values.get('country')
+        fromCur = request.values.get('fromCur')
+        toCur = request.values.get('toCur')
+        return conn_ref.get_data_for_calculator(country, fromCur, toCur)
+    except:
+        return jsonify({"status": "Postgres error"}), 408
+
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)

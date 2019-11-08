@@ -7,7 +7,7 @@ class MyTestCase(unittest.TestCase):
     @unittest.skip("this calculation breaks, mid-rate uses a API that changes value every day.")
     def test_percentage_to_exchange_rate_correct(self):
         data = correct_scrapped_data()
-        result = margin_calculator.percentage_to_exchange_rate(data)
+        result = margin_calculator.percentage_to_exchange_rate_buy(data)
         expected_result = [7.566021119999999, 6.8119394256192, 8.799057714929999, 0.69722342782896, 0.73541619989548,
                            6.847358199437, 5.204723589038999, 0.0619549468752, 5.0748391016741, 0.8637714364751999,
                            4.6502895635832, 4.3339104491660905, 1.7655689739717, 0.29257216212497, 0.02271990177174,

@@ -3,13 +3,15 @@ from bson import ObjectId
 
 
 class Scrapped:
-    def __init__(self, name, country, time, fromCurrency, toCurrency, buyMargin, sellMargin, unit, *args, **kwargs):
+    def __init__(self, name, country, time, fromCurrency, toCurrency, isCrossInverted, buyMargin, sellMargin, unit,
+                 *args, **kwargs):
         self.id = ObjectId()
         self.name = name
         self.country = country
         self.time = time
         self.fromCurrency = fromCurrency
         self.toCurrency = toCurrency
+        self.isCrossInverted = isCrossInverted
         self.buyMargin = buyMargin
         self.sellMargin = sellMargin
         self.unit = unit
@@ -20,5 +22,5 @@ class Scrapped:
 
     def base_margin(self):
         if self.unit == 'M100':
-            self.buyMargin = [float(element)/100 for element in self.buyMargin]
+            self.buyMargin = [float(element) / 100 for element in self.buyMargin]
             self.sellMargin = [float(element) / 100 for element in self.sellMargin]

@@ -1,127 +1,74 @@
 import midrate
 
 
-
 def margin_to_exchange_rate_sell(data):
-    j = data.to_JSON()
-    list_p = []
-    mid = midrate.get_midrate(j["fromCurrency"][0])
-    for idx, val in enumerate(j['toCurrency']):
-        try:
-            mid_current = 1/get_key(mid, j['toCurrency'][idx])
-            bankMSell = float(j['sellMargin'][idx])
-            list_p.append(mid_current - bankMSell)
-        except Exception as e:
-            list_p.append(0)
-            print(str(e))
+    return calculate(data, lambda midrate_value, bank_value: midrate_value - bank_value)
 
-    return list_p
 
 def margin_to_exchange_rate_buy(data):
-    j = data.to_JSON()
-    list_p = []
-    mid = midrate.get_midrate(j["fromCurrency"][0])
-    for idx, val in enumerate(j['toCurrency']):
-        try:
-            mid_current = 1/get_key(mid, j['toCurrency'][idx])
-            bankMSell = float(j['sellMargin'][idx])
-            list_p.append(mid_current + bankMSell)
-        except Exception as e:
-            list_p.append(0)
-            print(str(e))
-
-    return list_p
-
+    return calculate(data, lambda midrate_value, bank_value: midrate_value + bank_value)
 
 
 def margin_to_percentage(data):
+    return calculate(data, lambda midrate_value, bank_value: (bank_value / midrate_value) * 100)
+
+
+def percentage_to_exchange_rate_sell(data):
+    return calculate(data, lambda midrate_value, bank_value: midrate_value - ((bank_value * midrate_value) / 100))
+
+
+def percentage_to_exchange_rate_buy(data):
+    return calculate(data, lambda midrate_value, bank_value: midrate_value - ((bank_value * midrate_value) / 100))
+
+
+def percentage_to_margin(data):
+    return calculate(data, lambda midrate_value, bank_value: (bank_value * midrate_value) / 100)
+
+
+def calculate(data, operation):
     j = data.to_JSON()
     list_p = []
     mid = midrate.get_midrate(j["fromCurrency"][0])
     for idx, val in enumerate(j['toCurrency']):
         try:
-            mid_current = 1/get_key(mid, j['toCurrency'][idx])
+            if data.isCrossInverted:
+                mid_current = 1 / get_key(mid, j['toCurrency'][idx])
+            else:
+                mid_current = get_key(mid, j['toCurrency'][idx])
+
             bankMSell = float(j['sellMargin'][idx])
-            list_p.append(bankMSell / mid_current * 100)
+            list_p.append(operation(mid_current, bankMSell))
         except Exception as e:
             list_p.append(0)
             print(str(e))
-    print(list_p)
+
     return list_p
 
 
-def exchange_rate_to_margin(data):
+def exchange_rate_to_margin(data, operation):
     j = data.to_JSON()
     list_p = []
-    mid = midrate.get_midrate(j["fromCurrency"][0])
     for idx, val in enumerate(j['toCurrency']):
         try:
             bankExSell = float(j['sellMargin'][idx])
             bankExBuy = float(j['buyMargin'][idx])
-            list_p.append((bankExBuy - bankExSell)/2)
+            list_p.append((bankExBuy - bankExSell) / 2)
         except Exception as e:
             list_p.append(0)
             print(str(e))
     return list_p
 
 
-def exchange_rate_to_percentage(data):
+def exchange_rate_to_percentage(data, operation):
     j = data.to_JSON()
     list_p = []
-    mid = midrate.get_midrate(j["fromCurrency"][0])
     for idx, val in enumerate(j['toCurrency']):
         try:
             bankExBuy = float(j['buyMargin'][idx])
             bankExSell = float(j['sellMargin'][idx])
             mid_current = (bankExBuy + bankExSell) / 2
             margin = bankExBuy - mid_current
-            list_p.append((margin/mid_current)*100)
-        except Exception as e:
-            list_p.append(0)
-            print(str(e))
-    return list_p
-
-
-def percentage_to_exchange_rate_buy(data):
-    j = data.to_JSON()
-    list_p = []
-    mid = midrate.get_midrate(j["fromCurrency"][0])
-    for idx, val in enumerate(j['toCurrency']):
-        try:
-            mid_current = 1/get_key(mid, j['toCurrency'][idx])
-            bankPSell = float(j['sellMargin'][idx])
-            list_p.append(((bankPSell * mid_current) / 100) + mid_current)
-        except Exception as e:
-            list_p.append(0)
-            print(str(e))
-
-    return list_p
-
-def percentage_to_exchange_rate_sell(data):
-    j = data.to_JSON()
-    list_p = []
-    mid = midrate.get_midrate(j["fromCurrency"][0])
-    for idx, val in enumerate(j['toCurrency']):
-        try:
-            mid_current = 1/get_key(mid, j['toCurrency'][idx])
-            bankPSell = float(j['sellMargin'][idx])
-            list_p.append(mid_current - ((bankPSell * mid_current) / 100))
-        except Exception as e:
-            list_p.append(0)
-            print(str(e))
-
-    return list_p
-
-
-def percentage_to_margin(data):
-    j = data.to_JSON()
-    list_p = []
-    mid = midrate.get_midrate(j["fromCurrency"][0])
-    for idx, val in enumerate(j['toCurrency']):
-        try:
-            mid_current = 1/get_key(mid, j['toCurrency'][idx])
-            bankPSell = float(j['sellMargin'][idx])
-            list_p.append((bankPSell * mid_current) / 100)
+            list_p.append((margin / mid_current) * 100)
         except Exception as e:
             list_p.append(0)
             print(str(e))
@@ -135,8 +82,12 @@ def get_midrate_from_panda(data):
     # returns (json) dict with base and all rates, API is called only once
     for idx, val in enumerate(j['toCurrency']):
         try:
-            mid_current = get_key(mid, j['toCurrency'][idx])
-            list_p.append(1/mid_current)
+            if data.isCrossInverted:
+                mid_current = 1 / get_key(mid, j['toCurrency'][idx])
+            else:
+                mid_current = get_key(mid, j['toCurrency'][idx])
+
+            list_p.append(mid_current)
         except Exception as e:
             list_p.append(0)
             print(str(e))

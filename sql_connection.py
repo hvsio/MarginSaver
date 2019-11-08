@@ -12,7 +12,6 @@ from environment.environment import Config
 table_name = "margintest"
 
 
-
 class Postgres:
     def __init__(self):
 
@@ -78,6 +77,22 @@ class Postgres:
                     "unit": data.unit,
                     "midrate": margin_calculator.get_midrate_from_panda(data),
                 }
+            elif data.unit == "exchange100":
+                df = {
+                    "name": data.name,
+                    "country": data.country,
+                    "time": data.time,
+                    "tocurrency": data.toCurrency,
+                    "fromcurrency": data.fromCurrency,
+                    "buymargin": margin_calculator.exchange_rate_to_margin(data) / 100,
+                    "sellmargin": margin_calculator.exchange_rate_to_margin(data) / 100,
+                    "exchangeratesell": data.sellMargin / 100,
+                    "exchangeratebuy": data.buyMargin / 100,
+                    "percentbuy": margin_calculator.exchange_rate_to_percentage(data) / 100,
+                    "percentsell": margin_calculator.exchange_rate_to_percentage(data) / 100,
+                    "unit": data.unit,
+                    "midrate": margin_calculator.get_midrate_from_panda(data),
+                }
 
             df1 = pd.DataFrame(df)
 
@@ -96,8 +111,6 @@ class Postgres:
 
             print("Bank inserted successfully")
 
-
-
     def get_all_data(self):
         try:
             print("Database opened successfully get")
@@ -114,12 +127,15 @@ class Postgres:
             self.con.commit()
             self.con.close()
 
-    def get_all_of_to_currency(self, tocurrency):
+    def get_data_for_calculator(self, country, fromCurrency, toCurrency):
         try:
-            print("Database opened successfully get")
+            print("Database opened successfully get calc")
             cur = self.con.cursor()
-            query_to_execute = "SELECT * FROM margintest WHERE margintest.tocurrency IN (%s)"
-            cur.execute(query_to_execute, (tocurrency,))
+            query_to_execute = "SELECT * FROM margintest " \
+                               "WHERE country = (%s)" \
+                               "AND fromcurrency = (%s)" \
+                               "AND tocurrency IN (%s);"
+            cur.execute(query_to_execute, (country, fromCurrency, toCurrency))
             data = cur.fetchall()
             for row in data:
                 print(row)
