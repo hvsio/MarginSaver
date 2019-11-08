@@ -26,7 +26,7 @@ steps:
 #Uses the container and replaces the existing one in Kubernetes
 - name: 'gcr.io/cloud-builders/kubectl'
   id: Kubernetes deployment
-  args: ['set', 'image', 'deployment/margin-saver', 'marginsaver-sha256=gcr.io/abiding-robot-255320/marginsaver:$SHORT_SHA']
+  args: ['set', 'image', 'deployment/marginsaver', 'marginsaver-sha256=gcr.io/abiding-robot-255320/marginsaver:$SHORT_SHA']
   env:
     - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
     - 'CLOUDSDK_CONTAINER_CLUSTER=scrapper-cluster'
