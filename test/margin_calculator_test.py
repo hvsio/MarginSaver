@@ -15,6 +15,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
 
+
 # TODO: write unit tests for all calculation methods
 
 

@@ -137,6 +137,10 @@ class Postgres:
                                "AND tocurrency IN (%s);"
             cur.execute(query_to_execute, (country, fromCurrency, toCurrency))
             data = cur.fetchall()
+            if not data:
+                cur.execute(query_to_execute, (country, toCurrency, fromCurrency))
+                data = cur.fetchall()
+
             for row in data:
                 print(row)
             return json.dumps(data, indent=4, sort_keys=True, default=str)
