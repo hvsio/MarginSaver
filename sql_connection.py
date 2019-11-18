@@ -127,18 +127,22 @@ class Postgres:
             self.con.commit()
             self.con.close()
 
-    def get_data_for_calculator(self, country, fromCurrency, toCurrency):
+    def get_last_exchange_buy_from_banks(self, country, fromCurrency, toCurrency):
         try:
             print("Database opened successfully get calc")
             cur = self.con.cursor()
-            query_to_execute = "SELECT * FROM margintest " \
+            '''query_to_execute = "SELECT * FROM margintest " \
                                "WHERE country = (%s)" \
                                "AND fromcurrency = (%s)" \
-                               "AND tocurrency IN (%s);"
-            cur.execute(query_to_execute, (country, fromCurrency, toCurrency))
+                               "AND tocurrency IN (%s);"'''
+            query = "SELECT MAX (time) as LatestTimeStamp, name, country, fromcurrency, tocurrency, exchangeratebuy"\
+                    "FROM margintest" \
+                    "WHERE country = (%s) AND fromcurrency = (%s) AND tocurrency = (%s)" \
+                    "GROUP BY name, country, tocurrency, fromcurrency, exchangeratebuy"
+            cur.execute(query, (country, fromCurrency, toCurrency))
             data = cur.fetchall()
             if not data:
-                cur.execute(query_to_execute, (country, toCurrency, fromCurrency))
+                cur.execute(query, (country, toCurrency, fromCurrency))
                 data = cur.fetchall()
 
             for row in data:

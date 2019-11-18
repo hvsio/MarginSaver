@@ -30,24 +30,14 @@ def getData():
         return jsonify({"status": "Postgres error"}), 408
 
 
-@app.route("/tocurrency", methods=['GET'])
-def get_all_to_currency():
-    try:
-        conn_ref = Postgres()
-
-        return conn_ref.get_all_of_to_currency('EUR')
-    except:
-        return jsonify({"status": "Postgres error"}), 408
-
-
-@app.route("/calculate", methods=['GET'])
-def get_calculated_results():
+@app.route("/banksbuyrate", methods=['GET'])
+def get_banks_latest_exchange_buy():
     try:
         conn_ref = Postgres()
         country = request.values.get('country')
         fromCur = request.values.get('fromCur')
         toCur = request.values.get('toCur')
-        return conn_ref.get_data_for_calculator(country, fromCur, toCur)
+        return conn_ref.get_last_exchange_buy_from_banks(country, fromCur, toCur)
     except:
         return jsonify({"status": "Postgres error"}), 408
 
