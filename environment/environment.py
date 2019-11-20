@@ -10,7 +10,7 @@ class Config:
     # for running the application outside a container, so we dont have to initialize a PYTHONPATH in local.
     if not os.path.exists(configFilePath):
         configFilePath = (os.path.join(os.getcwd(), 'environment/config.ini'))
-    print(configFilePath)
+    print("current path" + configFilePath)
     if os.path.isfile(configFilePath):
         print("we got a file")
 

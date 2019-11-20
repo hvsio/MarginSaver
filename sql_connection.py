@@ -1,12 +1,11 @@
 import sys
 import psycopg2
 import json
-import sqlalchemy
 import margin_calculator
-import midrate
 import pandas as pd
 from sqlalchemy import *
 import threading
+from itertools import cycle
 from environment.environment import Config
 
 table_name = "margintest"
@@ -127,23 +126,25 @@ class Postgres:
             self.con.commit()
             self.con.close()
 
-    def get_data_for_calculator(self, country, fromCurrency, toCurrency):
+    def get_last_exchange_buy_from_banks(self, country, fromCurrency, toCurrency):
         try:
             print("Database opened successfully get calc")
             cur = self.con.cursor()
-            query_to_execute = "SELECT * FROM margintest " \
+            '''query_to_execute = "SELECT * FROM margintest " \
                                "WHERE country = (%s)" \
                                "AND fromcurrency = (%s)" \
-                               "AND tocurrency IN (%s);"
-            cur.execute(query_to_execute, (country, fromCurrency, toCurrency))
+                               "AND tocurrency IN (%s);"'''
+            query = "SELECT DISTINCT ON (name, country, tocurrency, fromcurrency, exchangeratebuy) " \
+                    "time as MostRecentDate, name, country, tocurrency, fromcurrency, exchangeratebuy " \
+                    "FROM margintest " \
+                    "WHERE country = (%s) AND fromcurrency = (%s) AND tocurrency = (%s) " \
+                    "ORDER BY name, country, tocurrency, fromcurrency, exchangeratebuy, time DESC; "
+            cur.execute(query, (country, fromCurrency, toCurrency))
             data = cur.fetchall()
-            if not data:
-                cur.execute(query_to_execute, (country, toCurrency, fromCurrency))
-                data = cur.fetchall()
-
-            for row in data:
-                print(row)
-            return json.dumps(data, indent=4, sort_keys=True, default=str)
+            cols = list(map(lambda x: x[0], cur.description))
+            response = pd.DataFrame(data, columns=cols).to_json(orient='records')
+            print(json.loads(response))
+            return json.loads(response)
 
         except (Exception, psycopg2.Error) as error:
             print(error)
