@@ -28,7 +28,7 @@ def percentage_to_margin(data):
 def calculate(data, operation):
     j = data.to_JSON()
     list_p = []
-    mid = midrate.get_midrate(j["fromCurrency"][0])
+    mid = midrate.Midrate.get_midrate(j["fromCurrency"][0])
     for idx, val in enumerate(j['toCurrency']):
         try:
             if data.isCrossInverted:
@@ -45,7 +45,7 @@ def calculate(data, operation):
     return list_p
 
 
-def exchange_rate_to_margin(data, operation):
+def exchange_rate_to_margin(data):
     j = data.to_JSON()
     list_p = []
     for idx, val in enumerate(j['toCurrency']):
@@ -59,7 +59,7 @@ def exchange_rate_to_margin(data, operation):
     return list_p
 
 
-def exchange_rate_to_percentage(data, operation):
+def exchange_rate_to_percentage(data):
     j = data.to_JSON()
     list_p = []
     for idx, val in enumerate(j['toCurrency']):
@@ -78,7 +78,7 @@ def exchange_rate_to_percentage(data, operation):
 def get_midrate_from_panda(data):
     j = data.to_JSON()
     list_p = []
-    mid = midrate.get_midrate(j["fromCurrency"][0])
+    mid = midrate.Midrate.get_midrate(j["fromCurrency"][0])
     # returns (json) dict with base and all rates, API is called only once
     for idx, val in enumerate(j['toCurrency']):
         try:

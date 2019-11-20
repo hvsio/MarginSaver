@@ -1,9 +1,18 @@
 import unittest
+
+import requests
+
 import margin_calculator
 from scrapped_data import Scrapped
 
 
 class MyTestCase(unittest.TestCase):
+    def test_midrate_api_get_response(self):
+        response = requests.get('https://api.exchangeratesapi.io/latest')
+        self.assertTrue(response.ok)
+
+
+
     @unittest.skip("this calculation breaks, mid-rate uses a API that changes value every day.")
     def test_percentage_to_exchange_rate_correct(self):
         data = correct_scrapped_data()
@@ -13,7 +22,6 @@ class MyTestCase(unittest.TestCase):
                            4.6502895635832, 4.3339104491660905, 1.7655689739717, 0.29257216212497, 0.02271990177174,
                            1.1979575080150502, 0.22341633238320002, 0.463487101792, 0.1056893256378]
         self.assertEqual(result, expected_result)
-
 
 
 # TODO: write unit tests for all calculation methods
