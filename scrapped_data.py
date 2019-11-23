@@ -12,8 +12,8 @@ class Scrapped:
         self.fromCurrency = fromCurrency
         self.toCurrency = toCurrency
         self.isCrossInverted = isCrossInverted
-        self.buyMargin = buyMargin
-        self.sellMargin = sellMargin
+        self.buyMargin = [float(i) for i in buyMargin]
+        self.sellMargin = [float(i) for i in sellMargin]
         self.unit = unit
 
     def to_JSON(self):

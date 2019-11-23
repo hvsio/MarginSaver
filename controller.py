@@ -38,8 +38,6 @@ def get_banks_latest_exchange_buy():
         fromCur = request.values.get('fromCur')
         toCur = request.values.get('toCur')
         response = conn_ref.get_last_exchange_buy_from_banks(country, fromCur, toCur)
-        '''response = json.dumps()
-        response = json.loads(response)'''
         print(type(response))
         return Response(response=json.dumps(response),
                         status=200,

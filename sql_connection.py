@@ -69,8 +69,10 @@ class Postgres:
                     "fromcurrency": data.fromCurrency,
                     "buymargin": margin_calculator.exchange_rate_to_margin(data),
                     "sellmargin": margin_calculator.exchange_rate_to_margin(data),
-                    "exchangeratesell": data.sellMargin,
-                    "exchangeratebuy": data.buyMargin,
+                    "exchangeratesell": margin_calculator.exchange_inverted_calculate(data.sellMargin,
+                                                                                      data.isCrossInverted),
+                    "exchangeratebuy": margin_calculator.exchange_inverted_calculate(data.buyMargin,
+                                                                                     data.isCrossInverted),
                     "percentbuy": margin_calculator.exchange_rate_to_percentage(data),
                     "percentsell": margin_calculator.exchange_rate_to_percentage(data),
                     "unit": data.unit,
@@ -83,12 +85,14 @@ class Postgres:
                     "time": data.time,
                     "tocurrency": data.toCurrency,
                     "fromcurrency": data.fromCurrency,
-                    "buymargin": margin_calculator.exchange_rate_to_margin(data) / 100,
-                    "sellmargin": margin_calculator.exchange_rate_to_margin(data) / 100,
-                    "exchangeratesell": data.sellMargin / 100,
-                    "exchangeratebuy": data.buyMargin / 100,
-                    "percentbuy": margin_calculator.exchange_rate_to_percentage(data) / 100,
-                    "percentsell": margin_calculator.exchange_rate_to_percentage(data) / 100,
+                    "buymargin": [x / 100 for x in margin_calculator.exchange_rate_to_margin(data)],
+                    "sellmargin": [x / 100 for x in margin_calculator.exchange_rate_to_margin(data)],
+                    "exchangeratesell": margin_calculator.exchange_inverted_calculate(
+                        [x / 100 for x in data.sellMargin], data.isCrossInverted),
+                    "exchangeratebuy": margin_calculator.exchange_inverted_calculate(
+                        [x / 100 for x in data.buyMargin],  data.isCrossInverted),
+                    "percentbuy": [x / 100 for x in margin_calculator.exchange_rate_to_percentage(data)],
+                    "percentsell": [x / 100 for x in margin_calculator.exchange_rate_to_percentage(data)],
                     "unit": data.unit,
                     "midrate": margin_calculator.get_midrate_from_panda(data),
                 }
@@ -129,21 +133,16 @@ class Postgres:
     def get_last_exchange_buy_from_banks(self, country, fromCurrency, toCurrency):
         try:
             print("Database opened successfully get calc")
-            cur = self.con.cursor()
-            '''query_to_execute = "SELECT * FROM margintest " \
-                               "WHERE country = (%s)" \
-                               "AND fromcurrency = (%s)" \
-                               "AND tocurrency IN (%s);"'''
+            cursor = self.con.cursor()
             query = "SELECT DISTINCT ON (name, country, tocurrency, fromcurrency, exchangeratebuy) " \
                     "time as MostRecentDate, name, country, tocurrency, fromcurrency, exchangeratebuy " \
                     "FROM margintest " \
                     "WHERE country = (%s) AND fromcurrency = (%s) AND tocurrency = (%s) " \
                     "ORDER BY name, country, tocurrency, fromcurrency, exchangeratebuy, time DESC; "
-            cur.execute(query, (country, fromCurrency, toCurrency))
-            data = cur.fetchall()
-            cols = list(map(lambda x: x[0], cur.description))
+            cursor.execute(query, (country, fromCurrency, toCurrency))
+            data = cursor.fetchall()
+            cols = list(map(lambda x: x[0], cursor.description))
             response = pd.DataFrame(data, columns=cols).to_json(orient='records')
-            print(json.loads(response))
             return json.loads(response)
 
         except (Exception, psycopg2.Error) as error:

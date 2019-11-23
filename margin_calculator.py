@@ -2,10 +2,14 @@ import midrate
 
 
 def margin_to_exchange_rate_sell(data):
+    if data.isCrossInverted:
+        return calculate(data, lambda midrate_value, bank_value: 1 / (midrate_value - bank_value))
     return calculate(data, lambda midrate_value, bank_value: midrate_value - bank_value)
 
 
 def margin_to_exchange_rate_buy(data):
+    if data.isCrossInverted:
+        return calculate(data, lambda midrate_value, bank_value: 1 / (midrate_value + bank_value))
     return calculate(data, lambda midrate_value, bank_value: midrate_value + bank_value)
 
 
@@ -14,10 +18,17 @@ def margin_to_percentage(data):
 
 
 def percentage_to_exchange_rate_sell(data):
+    if data.isCrossInverted:
+        return calculate(data,
+                         lambda midrate_value, bank_value: 1 / (midrate_value - ((bank_value * midrate_value) / 100)))
+
     return calculate(data, lambda midrate_value, bank_value: midrate_value - ((bank_value * midrate_value) / 100))
 
 
 def percentage_to_exchange_rate_buy(data):
+    if data.isCrossInverted:
+        return calculate(data,
+                         lambda midrate_value, bank_value: 1 / (midrate_value - ((bank_value * midrate_value) / 100)))
     return calculate(data, lambda midrate_value, bank_value: midrate_value - ((bank_value * midrate_value) / 100))
 
 
@@ -52,7 +63,10 @@ def exchange_rate_to_margin(data):
         try:
             bankExSell = float(j['sellMargin'][idx])
             bankExBuy = float(j['buyMargin'][idx])
-            list_p.append((bankExBuy - bankExSell) / 2)
+            if data.isCrossInverted:
+                list_p.append(1 / ((bankExBuy - bankExSell) / 2))
+            else:
+                list_p.append((bankExBuy - bankExSell) / 2)
         except Exception as e:
             list_p.append(0)
             print(str(e))
@@ -68,11 +82,21 @@ def exchange_rate_to_percentage(data):
             bankExSell = float(j['sellMargin'][idx])
             mid_current = (bankExBuy + bankExSell) / 2
             margin = bankExBuy - mid_current
-            list_p.append((margin / mid_current) * 100)
+            if data.isCrossInverted:
+                list_p.append(1 / ((margin / mid_current) * 100))
+            else:
+                list_p.append((margin / mid_current) * 100)
         except Exception as e:
             list_p.append(0)
             print(str(e))
     return list_p
+
+
+def exchange_inverted_calculate(input_list, is_inverted):
+    if is_inverted:
+        return [1 / x for x in input_list]
+    else:
+        return input_list
 
 
 def get_midrate_from_panda(data):
