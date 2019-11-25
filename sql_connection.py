@@ -130,15 +130,15 @@ class Postgres:
             self.con.commit()
             self.con.close()
 
-    def get_last_exchange_sell_from_banks(self, country, fromCurrency, toCurrency):
+    def get_last_exchange_buy_from_banks(self, country, fromCurrency, toCurrency):
         try:
             print("Database opened successfully get calc")
             cursor = self.con.cursor()
-            query = "SELECT DISTINCT ON (name, country, tocurrency, fromcurrency, exchangeratesell) " \
-                    "time as MostRecentDate, name, country, tocurrency, fromcurrency, exchangeratesell " \
+            query = "SELECT DISTINCT ON (name, country, tocurrency, fromcurrency, exchangeratebuy) " \
+                    "time as MostRecentDate, name, country, tocurrency, fromcurrency, exchangeratebuy " \
                     "FROM margintest " \
                     "WHERE country = (%s) AND fromcurrency = (%s) AND tocurrency = (%s) " \
-                    "ORDER BY name, country, tocurrency, fromcurrency, exchangeratesell, time DESC; "
+                    "ORDER BY name, country, tocurrency, fromcurrency, exchangeratebuy, time DESC; "
             cursor.execute(query, (country, fromCurrency, toCurrency))
             data = cursor.fetchall()
             cols = list(map(lambda x: x[0], cursor.description))
