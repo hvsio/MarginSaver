@@ -30,14 +30,14 @@ def getData():
         return jsonify({"status": "Postgres error"}), 408
 
 
-@app.route("/bankssellrate", methods=['GET'])
+@app.route("/banksbuyrate", methods=['GET'])
 def get_banks_latest_exchange_buy():
     try:
         conn_ref = Postgres()
         country = request.values.get('country')
         fromCur = request.values.get('fromCur')
         toCur = request.values.get('toCur')
-        response = conn_ref.get_last_exchange_sell_from_banks(country, fromCur, toCur)
+        response = conn_ref.get_last_exchange_buy_from_banks(country, fromCur, toCur)
         return Response(response=json.dumps(response),
                         status=200,
                         mimetype='application/json')
