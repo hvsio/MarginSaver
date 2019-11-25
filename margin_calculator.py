@@ -36,6 +36,7 @@ def percentage_to_margin(data):
     return calculate(data, lambda midrate_value, bank_value: (bank_value * midrate_value) / 100)
 
 
+
 def calculate(data, operation):
     j = data.to_JSON()
     list_p = []
