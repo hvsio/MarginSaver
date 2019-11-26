@@ -5,10 +5,10 @@ import margin_calculator
 import pandas as pd
 from sqlalchemy import *
 import threading
-from itertools import cycle
+import uuid
 from environment.environment import Config
 
-table_name = "margintest"
+table_name = "margin"
 
 
 class Postgres:
@@ -90,7 +90,7 @@ class Postgres:
                     "exchangeratesell": margin_calculator.exchange_inverted_calculate(
                         [x / 100 for x in data.sellMargin], data.isCrossInverted),
                     "exchangeratebuy": margin_calculator.exchange_inverted_calculate(
-                        [x / 100 for x in data.buyMargin],  data.isCrossInverted),
+                        [x / 100 for x in data.buyMargin], data.isCrossInverted),
                     "percentbuy": [x / 100 for x in margin_calculator.exchange_rate_to_percentage(data)],
                     "percentsell": [x / 100 for x in margin_calculator.exchange_rate_to_percentage(data)],
                     "unit": data.unit,
@@ -110,7 +110,7 @@ class Postgres:
 
             engine = create_engine(self.environment)
 
-            df1.to_sql("margintest", engine, if_exists='append', index=False)
+            df1.to_sql(table_name, engine, if_exists='append', index=False)
 
             print("Bank inserted successfully")
 
@@ -118,7 +118,7 @@ class Postgres:
         try:
             print("Database opened successfully get")
             cur = self.con.cursor()
-            cur.execute('''SELECT * FROM margintest;''')
+            cur.execute('''SELECT * FROM table_name ;''')
             data = cur.fetchall()
             for row in data:
                 print(row)
@@ -134,9 +134,9 @@ class Postgres:
         try:
             print("Database opened successfully get calc")
             cursor = self.con.cursor()
-            query = "SELECT DISTINCT ON (name, country, tocurrency, fromcurrency, exchangeratebuy) " \
+            query = "SELECT DISTINCT ON (name, country, tocurrency, fromcurrency) " \
                     "time as MostRecentDate, name, country, tocurrency, fromcurrency, exchangeratebuy " \
-                    "FROM margintest " \
+                    "FROM margin " \
                     "WHERE country = (%s) AND fromcurrency = (%s) AND tocurrency = (%s) " \
                     "ORDER BY name, country, tocurrency, fromcurrency, exchangeratebuy, time DESC; "
             cursor.execute(query, (country, fromCurrency, toCurrency))
@@ -150,3 +150,38 @@ class Postgres:
         finally:
             self.con.commit()
             self.con.close()
+
+    def table_exists(self, table_str):
+        exists = False
+        try:
+            cur = self.con.cursor()
+            cur.execute("select exists(select relname from pg_class where relname='" + table_str + "')")
+            exists = cur.fetchone()[0]
+            cur.close()
+        except psycopg2.Error as e:
+            print(str(e))
+        return exists
+
+    def initialize_DB(self):
+        cur = self.con.cursor()
+        try:
+            if not self.table_exists(table_name):
+                cur.execute("""CREATE TABLE margin(    
+                                    id SERIAL,  
+                                    name TEXT, 
+                                    country TEXT, 
+                                    time TEXT, 
+                                    tocurrency TEXT, 
+                                    fromcurrency TEXT, 
+                                    buymargin REAL, 
+                                    sellmargin REAL, 
+                                    exchangeratesell REAL, 
+                                    exchangeratebuy REAL, 
+                                    percentbuy REAL, 
+                                    percentsell REAL, 
+                                    unit TEXT, 
+                                    midrate REAL, 
+                                    PRIMARY KEY (id))""")
+                self.con.commit()
+        except Exception as e:
+            print(str(e))

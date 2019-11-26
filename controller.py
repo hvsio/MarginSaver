@@ -4,6 +4,9 @@ from sql_connection import Postgres
 
 app = Flask(__name__)
 
+conn_ref = Postgres()
+conn_ref.initialize_DB()
+
 
 @app.route("/margin", methods=['POST'])
 def postData():
@@ -12,7 +15,6 @@ def postData():
         print(posted_data)
         create_object_margin = Scrapped(**posted_data)
         if create_object_margin.unit == 'M100': create_object_margin.base_margin()
-        conn_ref = Postgres()
         conn_ref.insert_with_panda(create_object_margin)
         return jsonify({"status": "added"}), 201
     except Exception as e:
@@ -21,9 +23,8 @@ def postData():
 
 
 @app.route("/margin", methods=['GET'])
-def getData():
+def get_data():
     try:
-        conn_ref = Postgres()
         return conn_ref.get_all_data()
 
     except:
@@ -33,11 +34,10 @@ def getData():
 @app.route("/banksbuyrate", methods=['GET'])
 def get_banks_latest_exchange_buy():
     try:
-        conn_ref = Postgres()
         country = request.values.get('country')
-        fromCur = request.values.get('fromCur')
-        toCur = request.values.get('toCur')
-        response = conn_ref.get_last_exchange_buy_from_banks(country, fromCur, toCur)
+        fromCurrency = request.values.get('fromCurrency')
+        toCurrency = request.values.get('toCurrency')
+        response = conn_ref.get_last_exchange_buy_from_banks(country, fromCurrency, toCurrency)
         return Response(response=json.dumps(response),
                         status=200,
                         mimetype='application/json')
@@ -45,14 +45,16 @@ def get_banks_latest_exchange_buy():
         print(str(e))
         return jsonify({"status": "Postgres error"}), 408
 
-@app.route('/testfront', methods=['GET'])
-def get_banks():
-    return {
-              "bank": "Danske bank",
-              "exchange": "7.45",
-              "fee": "20",
-              "cost": "765"
-}
+
+@app.route("/initializedb", methods=["GET"])
+def init_db():
+    try:
+        conn_ref.initialize_DB()
+        return jsonify({"status": "DB initialize"}), 200
+
+    except Exception as E:
+        print(str(E))
+        return jsonify({"status": "postgres serror"}), 408
 
 
 if __name__ == "__main__":
