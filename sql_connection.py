@@ -185,3 +185,6 @@ class Postgres:
                 self.con.commit()
         except Exception as e:
             print(str(e))
+        finally:
+            self.con.commit()
+            self.con.close()

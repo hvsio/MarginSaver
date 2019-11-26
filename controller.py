@@ -15,6 +15,7 @@ def postData():
         print(posted_data)
         create_object_margin = Scrapped(**posted_data)
         if create_object_margin.unit == 'M100': create_object_margin.base_margin()
+        conn_ref = Postgres()
         conn_ref.insert_with_panda(create_object_margin)
         return jsonify({"status": "added"}), 201
     except Exception as e:
@@ -25,6 +26,7 @@ def postData():
 @app.route("/margin", methods=['GET'])
 def get_data():
     try:
+        conn_ref = Postgres()
         return conn_ref.get_all_data()
 
     except:
@@ -37,6 +39,7 @@ def get_banks_latest_exchange_buy():
         country = request.values.get('country')
         fromCurrency = request.values.get('fromCurrency')
         toCurrency = request.values.get('toCurrency')
+        conn_ref = Postgres()
         response = conn_ref.get_last_exchange_buy_from_banks(country, fromCurrency, toCurrency)
         return Response(response=json.dumps(response),
                         status=200,
@@ -49,6 +52,7 @@ def get_banks_latest_exchange_buy():
 @app.route("/initializedb", methods=["GET"])
 def init_db():
     try:
+        conn_ref = Postgres()
         conn_ref.initialize_DB()
         return jsonify({"status": "DB initialize"}), 200
 
