@@ -18,23 +18,33 @@ def margin_to_percentage(data):
 
 
 def percentage_to_exchange_rate_sell(data):
-    if data.isCrossInverted:
+    if data.isCrossInverted and data.sellMargin >= 1:
         return calculate(data,
                          lambda midrate_value, bank_value: 1 / (midrate_value + ((bank_value * midrate_value) / 100)))
-
-    return calculate(data, lambda midrate_value, bank_value: midrate_value + ((bank_value * midrate_value) / 100))
+    if data.isCrossInverted and data.sellMargin < 1:
+        return calculate(data,
+                         lambda midrate_value, bank_value: 1 / (midrate_value - ((bank_value * midrate_value) / 100)))
+    if data.sellMargin >= 1:
+        return calculate(data, lambda midrate_value, bank_value: midrate_value + ((bank_value * midrate_value) / 100))
+    if data.sellMargin < 1:
+        return calculate(data, lambda midrate_value, bank_value: midrate_value - ((bank_value * midrate_value) / 100))
 
 
 def percentage_to_exchange_rate_buy(data):
-    if data.isCrossInverted:
+    if data.isCrossInverted and data.sellMargin >= 1:
         return calculate(data,
                          lambda midrate_value, bank_value: 1 / (midrate_value - ((bank_value * midrate_value) / 100)))
-    return calculate(data, lambda midrate_value, bank_value: midrate_value - ((bank_value * midrate_value) / 100))
+    if data.isCrossInverted and data.sellMargin < 1:
+        return calculate(data,
+                         lambda midrate_value, bank_value: 1 / (midrate_value + ((bank_value * midrate_value) / 100)))
+    if data.sellMargin >= 1:
+        return calculate(data, lambda midrate_value, bank_value: midrate_value - ((bank_value * midrate_value) / 100))
+    if data.sellMargin < 1:
+        return calculate(data, lambda midrate_value, bank_value: midrate_value + ((bank_value * midrate_value) / 100))
 
 
 def percentage_to_margin(data):
     return calculate(data, lambda midrate_value, bank_value: (bank_value * midrate_value) / 100)
-
 
 
 def calculate(data, operation):
