@@ -7,6 +7,7 @@ def margin_to_exchange_rate_sell(data):
     return calculate(data, lambda midrate_value, bank_value: midrate_value + bank_value)
 
 
+
 def margin_to_exchange_rate_buy(data):
     if data.isCrossInverted:
         return calculate(data, lambda midrate_value, bank_value: 1 / (midrate_value - bank_value))
