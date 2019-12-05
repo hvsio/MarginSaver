@@ -144,7 +144,7 @@ class Postgres:
             print("Database opened successfully get calc")
             cursor = self.con.cursor()
             query = "SELECT DISTINCT ON (name, country, tocurrency, fromcurrency) " \
-                    "time as MostRecentDate, name, country, tocurrency, fromcurrency, exchangeratesell " \
+                    "time as MostRecentDate, name, country, tocurrency, fromcurrency, exchangeratesell as exchangeratebuy " \
                     "FROM margin " \
                     "WHERE country = (%s) AND fromcurrency = (%s) AND tocurrency = (%s) " \
                     "ORDER BY name, country, tocurrency, fromcurrency, exchangeratesell, time DESC; "

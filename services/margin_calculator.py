@@ -63,7 +63,7 @@ def exchange_rate_to_margin(data):
             bankExSell = float(j['sellMargin'][idx])
             bankExBuy = float(j['buyMargin'][idx])
             if data.isCrossInverted:
-                list_p.append(1 / ((bankExBuy - bankExSell) / 2))
+                list_p.append(((1/bankExSell - 1/bankExBuy) / 2))
             else:
                 list_p.append((bankExBuy - bankExSell) / 2)
         except Exception as e:
@@ -79,12 +79,9 @@ def exchange_rate_to_percentage(data):
         try:
             bankExBuy = float(j['buyMargin'][idx])
             bankExSell = float(j['sellMargin'][idx])
-            mid_current = (bankExBuy - bankExSell) / 2
+            mid_current = ((bankExBuy - bankExSell) / 2) + bankExSell
             margin = bankExBuy - mid_current
-            if data.isCrossInverted:
-                list_p.append(1 / ((margin / mid_current) * 100))
-            else:
-                list_p.append((margin / mid_current) * 100)
+            list_p.append((margin / mid_current) * 100)
         except Exception as e:
             list_p.append(0)
             print(str(e))
@@ -132,7 +129,7 @@ def invert_margin(data):
     for idx, val in enumerate(j['toCurrency']):
         try:
             inverted_mid = 1 / get_key(mid, j['toCurrency'][idx])
-            inverted_margin = abs((1/(inverted_mid + data.buyMargin)) - (1/inverted_mid))
+            inverted_margin = abs((1/(inverted_mid + data.buyMargin[idx])) - (1/inverted_mid))
             list_p.append(inverted_margin)
         except Exception as e:
             list_p.append(0)
