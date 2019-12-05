@@ -1,11 +1,10 @@
 import sys
 import psycopg2
 import json
-import margin_calculator
+from services import margin_calculator
 import pandas as pd
 from sqlalchemy import *
 import threading
-import uuid
 from environment.environment import Config
 
 table_name = "margin"
@@ -35,8 +34,8 @@ class Postgres:
                     "time": data.time,
                     "tocurrency": data.toCurrency,
                     "fromcurrency": data.fromCurrency,
-                    "buymargin": data.buyMargin,
-                    "sellmargin": data.sellMargin,
+                    "buymargin": margin_calculator.invert_margin(data) if data.isCrossInverted else data.buyMargin,
+                    "sellmargin": margin_calculator.invert_margin(data) if data.isCrossInverted else data.sellMargin,
                     "exchangeratesell": margin_calculator.margin_to_exchange_rate_sell(data),
                     "exchangeratebuy": margin_calculator.margin_to_exchange_rate_buy(data),
                     "percentbuy": margin_calculator.margin_to_percentage(data),
@@ -69,33 +68,39 @@ class Postgres:
                     "fromcurrency": data.fromCurrency,
                     "buymargin": margin_calculator.exchange_rate_to_margin(data),
                     "sellmargin": margin_calculator.exchange_rate_to_margin(data),
-                    "exchangeratesell": margin_calculator.exchange_inverted_calculate(data.sellMargin,
-                                                                                      data.isCrossInverted),
-                    "exchangeratebuy": margin_calculator.exchange_inverted_calculate(data.buyMargin,
-                                                                                     data.isCrossInverted),
+                    "exchangeratesell":
+                        margin_calculator.exchange_inverted_calculate(data.buyMargin, data.isCrossInverted)
+                    if data.isCrossInverted else
+                        margin_calculator.exchange_inverted_calculate(data.sellMargin, data.isCrossInverted),
+                    "exchangeratebuy":
+                        margin_calculator.exchange_inverted_calculate(data.sellMargin, data.isCrossInverted)
+                    if data.isCrossInverted else
+                        margin_calculator.exchange_inverted_calculate(data.buyMargin, data.isCrossInverted),
                     "percentbuy": margin_calculator.exchange_rate_to_percentage(data),
                     "percentsell": margin_calculator.exchange_rate_to_percentage(data),
                     "unit": data.unit,
                     "midrate": margin_calculator.get_midrate_from_panda(data),
                 }
-            elif data.unit == "exchange100":
-                df = {
-                    "name": data.name,
-                    "country": data.country,
-                    "time": data.time,
-                    "tocurrency": data.toCurrency,
-                    "fromcurrency": data.fromCurrency,
-                    "buymargin": [x / 100 for x in margin_calculator.exchange_rate_to_margin(data)],
-                    "sellmargin": [x / 100 for x in margin_calculator.exchange_rate_to_margin(data)],
-                    "exchangeratesell": margin_calculator.exchange_inverted_calculate(
-                        [x / 100 for x in data.sellMargin], data.isCrossInverted),
-                    "exchangeratebuy": margin_calculator.exchange_inverted_calculate(
-                        [x / 100 for x in data.buyMargin], data.isCrossInverted),
-                    "percentbuy": [x / 100 for x in margin_calculator.exchange_rate_to_percentage(data)],
-                    "percentsell": [x / 100 for x in margin_calculator.exchange_rate_to_percentage(data)],
-                    "unit": data.unit,
-                    "midrate": margin_calculator.get_midrate_from_panda(data),
-                }
+            # elif data.unit == "exchange100":
+            #     df = {
+            #         "name": data.name,
+            #         "country": data.country,
+            #         "time": data.time,
+            #         "tocurrency": data.toCurrency,
+            #         "fromcurrency": data.fromCurrency,
+            #         "buymargin": [x / 100 for x in margin_calculator.exchange_rate_to_margin(data)],
+            #         "sellmargin": [x / 100 for x in margin_calculator.exchange_rate_to_margin(data)],
+            #         # X/Y buy margin ==  1/ (Y/X sell margin) : that the reason behind the calculation of
+            #         # swaping buyMargin and sellMargin in the next lines
+            #         "exchangeratesell": margin_calculator.exchange_inverted_calculate(
+            #             [x / 100 for x in data.buyMargin], data.isCrossInverted),
+            #         "exchangeratebuy": margin_calculator.exchange_inverted_calculate(
+            #             [x / 100 for x in data.sellMargin], data.isCrossInverted),
+            #         "percentbuy": [x / 100 for x in margin_calculator.exchange_rate_to_percentage(data)],
+            #         "percentsell": [x / 100 for x in margin_calculator.exchange_rate_to_percentage(data)],
+            #         "unit": data.unit,
+            #         "midrate": margin_calculator.get_midrate_from_panda(data),
+            #     }
 
             df1 = pd.DataFrame(df)
 
@@ -131,14 +136,18 @@ class Postgres:
             self.con.close()
 
     def get_last_exchange_buy_from_banks(self, country, fromCurrency, toCurrency):
+        # exchangeratebuy from customer perspective for example:
+         # fromCurrency: DKK
+         # toCurrency: EUR
+         # Danske bank buy DKK EUR at a rate of 0.1336
         try:
             print("Database opened successfully get calc")
             cursor = self.con.cursor()
             query = "SELECT DISTINCT ON (name, country, tocurrency, fromcurrency) " \
-                    "time as MostRecentDate, name, country, tocurrency, fromcurrency, exchangeratebuy " \
+                    "time as MostRecentDate, name, country, tocurrency, fromcurrency, exchangeratesell " \
                     "FROM margin " \
                     "WHERE country = (%s) AND fromcurrency = (%s) AND tocurrency = (%s) " \
-                    "ORDER BY name, country, tocurrency, fromcurrency, exchangeratebuy, time DESC; "
+                    "ORDER BY name, country, tocurrency, fromcurrency, exchangeratesell, time DESC; "
             cursor.execute(query, (country, fromCurrency, toCurrency))
             data = cursor.fetchall()
             cols = list(map(lambda x: x[0], cursor.description))

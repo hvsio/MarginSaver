@@ -2,8 +2,8 @@ import unittest
 
 import requests
 
-import margin_calculator
-from scrapped_data import Scrapped
+from services import margin_calculator
+from models.scrapped_data import Scrapped
 
 
 class MyTestCase(unittest.TestCase):

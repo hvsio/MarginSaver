@@ -1,17 +1,16 @@
-import midrate
+from services import midrate
 
 
 def margin_to_exchange_rate_sell(data):
     if data.isCrossInverted:
         return calculate(data, lambda midrate_value, bank_value: 1 / (midrate_value + bank_value))
-    return calculate(data, lambda midrate_value, bank_value: midrate_value + bank_value)
-
+    return calculate(data, lambda midrate_value, bank_value: midrate_value - bank_value)
 
 
 def margin_to_exchange_rate_buy(data):
     if data.isCrossInverted:
         return calculate(data, lambda midrate_value, bank_value: 1 / (midrate_value - bank_value))
-    return calculate(data, lambda midrate_value, bank_value: midrate_value - bank_value)
+    return calculate(data, lambda midrate_value, bank_value: midrate_value + bank_value)
 
 
 def margin_to_percentage(data):
@@ -20,18 +19,16 @@ def margin_to_percentage(data):
 
 def percentage_to_exchange_rate_sell(data):
     if data.isCrossInverted:
-        return calculate(data, lambda midrate_value, bank_value: 1 / (
-                midrate_value + ((1 / midrate_value * bank_value) / 100)))
-
-    return calculate(data, lambda midrate_value, bank_value: midrate_value + ((bank_value * midrate_value) / 100))
+        return calculate(data,
+                         lambda midrate_value, bank_value: 1 / (midrate_value + ((bank_value * midrate_value) / 100)))
+    return calculate(data, lambda midrate_value, bank_value: midrate_value - ((bank_value * midrate_value) / 100))
 
 
 def percentage_to_exchange_rate_buy(data):
     if data.isCrossInverted:
         return calculate(data,
-                         lambda midrate_value, bank_value: 1 / (
-                                     midrate_value - ((1 / midrate_value * bank_value) / 100)))
-    return calculate(data, lambda midrate_value, bank_value: midrate_value - ((bank_value * midrate_value) / 100))
+                         lambda midrate_value, bank_value: 1 / (midrate_value - ((bank_value * midrate_value) / 100)))
+    return calculate(data, lambda midrate_value, bank_value: midrate_value + ((bank_value * midrate_value) / 100))
 
 
 def percentage_to_margin(data):
@@ -82,7 +79,7 @@ def exchange_rate_to_percentage(data):
         try:
             bankExBuy = float(j['buyMargin'][idx])
             bankExSell = float(j['sellMargin'][idx])
-            mid_current = (bankExBuy + bankExSell) / 2
+            mid_current = (bankExBuy - bankExSell) / 2
             margin = bankExBuy - mid_current
             if data.isCrossInverted:
                 list_p.append(1 / ((margin / mid_current) * 100))
@@ -108,10 +105,12 @@ def get_midrate_from_panda(data):
     # returns (json) dict with base and all rates, API is called only once
     for idx, val in enumerate(j['toCurrency']):
         try:
+            '''
             if data.isCrossInverted:
                 mid_current = 1 / get_key(mid, j['toCurrency'][idx])
             else:
-                mid_current = get_key(mid, j['toCurrency'][idx])
+            '''
+            mid_current = get_key(mid, j['toCurrency'][idx])
 
             list_p.append(mid_current)
         except Exception as e:
@@ -125,3 +124,18 @@ def get_key(dict, key):
         return dict[key]
     else:
         raise KeyError('Key not found')
+
+def invert_margin(data):
+    j = data.to_JSON()
+    list_p = []
+    mid = midrate.Midrate.get_midrate(j["fromCurrency"][0])
+    for idx, val in enumerate(j['toCurrency']):
+        try:
+            inverted_mid = 1 / get_key(mid, j['toCurrency'][idx])
+            inverted_margin = abs((1/(inverted_mid + data.buyMargin)) - (1/inverted_mid))
+            list_p.append(inverted_margin)
+        except Exception as e:
+            list_p.append(0)
+            print(str(e))
+    return list_p
+

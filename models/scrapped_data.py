@@ -24,3 +24,7 @@ class Scrapped:
         if self.unit == 'M100':
             self.buyMargin = [float(element) / 100 for element in self.buyMargin]
             self.sellMargin = [float(element) / 100 for element in self.sellMargin]
+        if self.unit == 'exchange100':
+            self.unit = 'exchange'
+            self.buyMargin = [float(element) / 100 for element in self.buyMargin]
+            self.sellMargin = [float(element) / 100 for element in self.sellMargin]
