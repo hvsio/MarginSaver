@@ -128,8 +128,10 @@ def invert_dataframe(data_frame):
     inverted_data_frame.is_copy = False
     inverted_data_frame['tocurrency'] = data_frame['fromcurrency']
     inverted_data_frame['fromcurrency'] = data_frame['tocurrency']
-    inverted_data_frame['buymargin'] = invert_margin_list(data_frame['sellmargin'], data_frame['midrate'])
-    inverted_data_frame['sellmargin'] = invert_margin_list(data_frame['buymargin'], data_frame['midrate'])
+    inverted_data_frame['buymargin'] = invert_margin_list(data_frame['sellmargin'], data_frame['exchangeratebuy'],
+                                                          data_frame['exchangeratesell'])
+    inverted_data_frame['sellmargin'] = invert_margin_list(data_frame['buymargin'], data_frame['exchangeratebuy'],
+                                                           data_frame['exchangeratesell'])
     inverted_data_frame['exchangeratesell'] = [1 / x if x != 0 else 0 for x in data_frame['exchangeratebuy']]
     inverted_data_frame['exchangeratebuy'] = [1 / x if x != 0 else 0 for x in data_frame['exchangeratesell']]
     inverted_data_frame['percentbuy'] = data_frame['percentsell']
@@ -153,7 +155,9 @@ def invert_margin(data):
     return list_p
 
 
-def invert_margin_list(margin, mid):
+def invert_margin_list(margin, exchange_sell, exchange_buy):
+    margin_list = []
     for x in range(len(margin)):
-        margin[x] = abs((1 / (mid[x] + margin[x])) - (1 / mid[x])) if mid[x] != 0 else 0
-    return margin
+        mid = ((exchange_buy[x] - exchange_sell[x]) / 2) + exchange_sell[x]
+        margin_list.append(abs((1 / (mid + margin[x])) - (1 / mid)) if mid != 0 else 0)
+    return margin_list
