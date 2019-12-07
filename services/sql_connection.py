@@ -31,6 +31,7 @@ class Postgres:
                 df = {
                     "name": data.name,
                     "country": data.country,
+                    "date": data.time,
                     "time": data.time,
                     "tocurrency": data.toCurrency,
                     "fromcurrency": data.fromCurrency,
@@ -47,6 +48,7 @@ class Postgres:
                 df = {
                     "name": data.name,
                     "country": data.country,
+                    "date": data.time,
                     "time": data.time,
                     "tocurrency": data.toCurrency,
                     "fromcurrency": data.fromCurrency,
@@ -63,6 +65,7 @@ class Postgres:
                 df = {
                     "name": data.name,
                     "country": data.country,
+                    "date": data.time,
                     "time": data.time,
                     "tocurrency": data.toCurrency,
                     "fromcurrency": data.fromCurrency,
@@ -118,6 +121,13 @@ class Postgres:
             df1.to_sql(table_name, engine, if_exists='append', index=False)
 
             print("Bank inserted successfully")
+
+            print("Creating inverted entry")
+
+            df_inverted = margin_calculator.invert_dataframe(df1)
+            df_inverted.to_sql(table_name, engine, if_exists='append', index=False)
+
+            print("Inverted entry inserted successfully")
 
     def get_all_data(self):
         try:
@@ -179,7 +189,8 @@ class Postgres:
                                     id SERIAL,  
                                     name TEXT, 
                                     country TEXT, 
-                                    time TEXT, 
+                                    date DATE,
+                                    time TIME, 
                                     tocurrency TEXT, 
                                     fromcurrency TEXT, 
                                     buymargin REAL, 
