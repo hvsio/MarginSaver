@@ -154,14 +154,14 @@ class Postgres:
             print("Database opened successfully get calc")
             cursor = self.con.cursor()
             query = "SELECT DISTINCT ON (name, country, tocurrency, fromcurrency) " \
-                    "time as MostRecentDate, name, country, tocurrency, fromcurrency, exchangeratesell as exchangeratebuy " \
+                    "date + time as MostRecentDate, name, country, tocurrency, fromcurrency, exchangeratesell as exchangeratebuy " \
                     "FROM margin " \
                     "WHERE country = (%s) AND fromcurrency = (%s) AND tocurrency = (%s) " \
-                    "ORDER BY name, country, tocurrency, fromcurrency, exchangeratesell, time DESC; "
+                    "ORDER BY name, country, tocurrency, fromcurrency, exchangeratesell, date DESC, time DESC; "
             cursor.execute(query, (country, fromCurrency, toCurrency))
             data = cursor.fetchall()
             cols = list(map(lambda x: x[0], cursor.description))
-            response = pd.DataFrame(data, columns=cols).to_json(orient='records')
+            response = pd.DataFrame(data, columns=cols).to_json(orient='records', date_format='iso')
             return json.loads(response)
 
         except (Exception, psycopg2.Error) as error:
