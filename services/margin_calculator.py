@@ -38,7 +38,7 @@ def percentage_to_margin(data):
 def calculate(data, operation):
     j = data.to_JSON()
     list_p = []
-    mid = midrate.Midrate.get_midrate(j["fromCurrency"][0])
+    mid = midrate.get_midrate(j["fromCurrency"][0])
     for idx, val in enumerate(j['toCurrency']):
         try:
             if data.isCrossInverted:
@@ -98,17 +98,11 @@ def exchange_inverted_calculate(input_list, is_inverted):
 def get_midrate_from_panda(data):
     j = data.to_JSON()
     list_p = []
-    mid = midrate.Midrate.get_midrate(j["fromCurrency"][0])
+    mid = midrate.get_midrate(j["fromCurrency"][0])
     # returns (json) dict with base and all rates, API is called only once
     for idx, val in enumerate(j['toCurrency']):
         try:
-            '''
-            if data.isCrossInverted:
-                mid_current = 1 / get_key(mid, j['toCurrency'][idx])
-            else:
-            '''
             mid_current = get_key(mid, j['toCurrency'][idx])
-
             list_p.append(mid_current)
         except Exception as e:
             list_p.append(0)
@@ -143,7 +137,7 @@ def invert_dataframe(data_frame):
 def invert_margin(data):
     j = data.to_JSON()
     list_p = []
-    mid = midrate.Midrate.get_midrate(j["fromCurrency"][0])
+    mid = midrate.get_midrate(j["fromCurrency"][0])
     for idx, val in enumerate(j['toCurrency']):
         try:
             inverted_mid = 1 / get_key(mid, j['toCurrency'][idx])

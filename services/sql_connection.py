@@ -84,26 +84,7 @@ class Postgres:
                     "unit": data.unit,
                     "midrate": margin_calculator.get_midrate_from_panda(data),
                 }
-            # elif data.unit == "exchange100":
-            #     df = {
-            #         "name": data.name,
-            #         "country": data.country,
-            #         "time": data.time,
-            #         "tocurrency": data.toCurrency,
-            #         "fromcurrency": data.fromCurrency,
-            #         "buymargin": [x / 100 for x in margin_calculator.exchange_rate_to_margin(data)],
-            #         "sellmargin": [x / 100 for x in margin_calculator.exchange_rate_to_margin(data)],
-            #         # X/Y buy margin ==  1/ (Y/X sell margin) : that the reason behind the calculation of
-            #         # swaping buyMargin and sellMargin in the next lines
-            #         "exchangeratesell": margin_calculator.exchange_inverted_calculate(
-            #             [x / 100 for x in data.buyMargin], data.isCrossInverted),
-            #         "exchangeratebuy": margin_calculator.exchange_inverted_calculate(
-            #             [x / 100 for x in data.sellMargin], data.isCrossInverted),
-            #         "percentbuy": [x / 100 for x in margin_calculator.exchange_rate_to_percentage(data)],
-            #         "percentsell": [x / 100 for x in margin_calculator.exchange_rate_to_percentage(data)],
-            #         "unit": data.unit,
-            #         "midrate": margin_calculator.get_midrate_from_panda(data),
-            #     }
+
 
             df1 = pd.DataFrame(df)
 
@@ -129,21 +110,6 @@ class Postgres:
 
             print("Inverted entry inserted successfully")
 
-    def get_all_data(self):
-        try:
-            print("Database opened successfully get")
-            cur = self.con.cursor()
-            cur.execute('''SELECT * FROM table_name ;''')
-            data = cur.fetchall()
-            for row in data:
-                print(row)
-            return json.dumps(data, indent=4, sort_keys=True, default=str)
-
-        except (Exception, psycopg2.Error) as error:
-            print(error)
-        finally:
-            self.con.commit()
-            self.con.close()
 
     def get_last_exchange_buy_from_banks(self, country, fromCurrency, toCurrency):
         # exchangeratebuy from customer perspective for example:

@@ -23,15 +23,6 @@ def postData():
         return jsonify({"status": "Postgres error"}), 408
 
 
-@app.route("/margin", methods=['GET'])
-def get_data():
-    try:
-        conn_ref = Postgres()
-        return conn_ref.get_all_data()
-
-    except:
-        return jsonify({"status": "Postgres error"}), 408
-
 
 @app.route("/banksbuyrate", methods=['GET'])
 def get_banks_latest_exchange_buy():
@@ -58,7 +49,7 @@ def init_db():
 
     except Exception as E:
         print(str(E))
-        return jsonify({"status": "postgres serror"}), 408
+        return jsonify({"status": "postgres error"}), 408
 
 
 if __name__ == "__main__":
